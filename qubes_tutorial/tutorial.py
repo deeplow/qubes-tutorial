@@ -282,7 +282,10 @@ class Tutorial:
                 if md_line == "```\n":
                     in_yaml_block = False
                 else:
-                    yaml_text += md_line
+                    if md_line.startswith('name:'):
+                        yaml_text += "- " + md_line
+                    else:
+                        yaml_text += "  " + md_line
 
         self.load_as_yaml(yaml_text)
 
