@@ -13,7 +13,7 @@ class StepIndicator(Gtk.Window):
         self.set_border_width(10)
         self.set_default_size(400, 200)
 
-        self.set_style()
+        self._set_style()
 
         # making the window transparent
         screen = self.get_screen()
@@ -25,10 +25,11 @@ class StepIndicator(Gtk.Window):
         # removing all window decorations
         self.set_decorated(False)
 
-        self.create_dummy_boxes()
-        self.create_popover(text)
+        self._create_dummy_boxes()
+        self._create_popover(text)
 
-    def create_dummy_boxes(self):
+
+    def _create_dummy_boxes(self):
         """ Creates dummy pointable objects at the edges of the window """
 
         self.dummy_top_left = Gtk.Image.new_from_file("images/alpha_1px.png")
@@ -51,7 +52,7 @@ class StepIndicator(Gtk.Window):
 
         self.add(dummy_box)
 
-    def create_popover(self, text):
+    def _create_popover(self, text):
         self.popover = Gtk.Popover.new(self.dummy_top_left)
         vbox = Gtk.VBox()
 
@@ -73,7 +74,7 @@ class StepIndicator(Gtk.Window):
         self.popover.popdown()
         self.popover.popup()
 
-    def set_style(self):
+    def _set_style(self):
         css = b"""
 #dummy_box {
     margin-top:    -12px;
