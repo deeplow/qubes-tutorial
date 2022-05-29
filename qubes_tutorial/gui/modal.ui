@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="modalWindow" parent="GtkWindow">
+  <template class="ModalWindow" parent="GtkWindow">
     <property name="can-focus">False</property>
     <property name="resizable">False</property>
     <property name="default-width">800</property>
@@ -28,8 +28,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkButton" id="Close">
+              <object class="GtkButton" id="close_button">
                 <property name="label" translatable="yes">X</property>
+                <property name="name">close_button</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -47,7 +48,8 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="title_label">
+                <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Some Awesome Title Here</property>
                 <property name="justify">center</property>
@@ -64,17 +66,31 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="Back">
-                <property name="label" translatable="yes">«</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-                <property name="halign">center</property>
-                <property name="margin-left">20</property>
-                <property name="margin-right">20</property>
-                <property name="margin-start">20</property>
-                <property name="margin-end">20</property>
-                <property name="margin-top">5</property>
-                <property name="margin-bottom">5</property>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkButton" id="back_button">
+                    <property name="label" translatable="yes">«</property>
+                    <property name="name">back_button</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="halign">center</property>
+                    <property name="margin-left">20</property>
+                    <property name="margin-right">20</property>
+                    <property name="margin-start">20</property>
+                    <property name="margin-end">20</property>
+                    <property name="margin-top">5</property>
+                    <property name="margin-bottom">5</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -95,123 +111,11 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkBox" id="welcome_page">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="halign">center</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="name">glade-brand-image</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="valign">end</property>
-                    <property name="margin-bottom">48</property>
-                    <property name="xpad">85</property>
-                    <property name="ypad">3</property>
-                    <property name="pixbuf">images/qubes-logo.png</property>
-                    <property name="pixel-size">250</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="padding">17</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="version_label">
-                    <property name="name">version-label</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="margin-bottom">51</property>
-                    <property name="xpad">77</property>
-                    <property name="ypad">0</property>
-                    <property name="label" translatable="yes">Qubes OS usage centers around the creation and management of isolated compartments called qubes. This is wildly different from systems like Windows or Mac OS.
-
-&lt;i&gt;Take the tutorial if you’re not familiar.&lt;/i&gt;</property>
-                    <property name="use-markup">True</property>
-                    <property name="justify">center</property>
-                    <property name="wrap">True</property>
-                    <property name="width-chars">32</property>
-                    <property name="max-width-chars">32</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkBox">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="xpad">29</property>
-                        <property name="label" translatable="yes">&lt;u&gt;Skip tutorial,
-do later&lt;/u&gt;</property>
-                        <property name="use-markup">True</property>
-                        <property name="use-underline">True</property>
-                        <property name="justify">center</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <object class="GtkButton">
-                        <property name="label" translatable="yes">Learn the Basics »
-(5 minute tutorial) </property>
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="receives-default">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="pack-type">end</property>
-                        <property name="position">4</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">10</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="name">page0</property>
-                <property name="title">page0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkPaned" id="custom_modal">
-                <property name="height-request">380</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="position-set">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
+              <object class="CustomModal" id="_custom_modal">
               </object>
               <packing>
                 <property name="name">page1</property>
                 <property name="title">page1</property>
-                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -219,6 +123,55 @@ do later&lt;/u&gt;</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="xpad">77</property>
+                <property name="label" translatable="yes">&lt;u&gt;Skip tutorial,
+do later&lt;/u&gt;</property>
+                <property name="use-markup">True</property>
+                <property name="use-underline">True</property>
+                <property name="justify">center</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <object class="GtkButton" id="next_button">
+                <property name="label" translatable="yes">Learn the Basics »
+(5 minute tutorial) </property>
+                <property name="name">next_button</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">45</property>
+                <property name="pack-type">end</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="padding">10</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -230,6 +183,9 @@ do later&lt;/u&gt;</property>
         <property name="title" translatable="yes">Welcome</property>
         <property name="spacing">0</property>
         <property name="show-close-button">True</property>
+        <child>
+          <placeholder/>
+        </child>
         <child>
           <placeholder/>
         </child>
