@@ -117,9 +117,12 @@ class TutorialUIDbusService(dbus.service.Object):
         title = ui_item_dict.get('title')
         next_button_label = ui_item_dict.get('next_button')
         back_button_label = ui_item_dict.get('back_button')
+        backdrop_enabled_str = ui_item_dict.get('backdrop_enabled', "False")
+        backdrop_enabled = backdrop_enabled_str == "True"
         self.modal.update(template_path, title,
                           next_button_label, on_next_button_pressed,
-                          back_button_label, on_back_button_pressed)
+                          back_button_label, on_back_button_pressed,
+                          backdrop_enabled)
 
     def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
@@ -451,10 +454,42 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
         self.custom_modal = None
         self.set_keep_above(True)
         self.set_decorated(False)
+        self.create_backdrop()
+
+    def create_backdrop(self):
+        """
+        Darkens the screen behind the modal window
+        """
+        self.backdrop = Gtk.Window()
+
+        # enable compositing so it can be translucent
+        screen = self.get_screen()
+        visual = screen.get_rgba_visual()
+        if visual != None and screen.is_composited():
+            self.backdrop.set_visual(visual)
+        self.backdrop.set_app_paintable(True)
+
+        self.backdrop.fullscreen()
+
+        drawingarea = Gtk.DrawingArea()
+        self.backdrop.add(drawingarea)
+        drawingarea.connect('draw', self.backdrop_draw)
+        drawingarea.set_opacity(0.4)
+        self.set_transient_for(self.backdrop)
+        self.set_modal(True)
+
+    def backdrop_draw(self, drawing_area, ctx):
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
+        rect = ctx.rectangle(0, 0, screen_width, screen_height)
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.fill()
 
     def update(self, step_ui_path, title,
                  next_button_label, next_button_callback,
-                 back_button_label=None, back_button_callback=None):
+                 back_button_label=None, back_button_callback=None,
+                 backdrop_enabled=False):
 
         custom_information = Gtk.Builder()
         custom_information.add_from_file(step_ui_path)
@@ -472,6 +507,8 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
         self.back_button.set_label(back_button_label)
         self.back_button_callback = back_button_callback
         self.move_to_center()
+        if backdrop_enabled:
+            self.backdrop.show_all()
         self.show_all()
         if back_button_label:
             self.back_button.set_visible(True)
@@ -489,11 +526,12 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
     @Gtk.Template.Callback()
     def on_next_button_pressed(self, button):
         self.next_button_callback()
+        self.backdrop.hide()
 
     @Gtk.Template.Callback()
     def on_back_button_pressed(self, button):
         self.back_button_callback()
-
+        self.backdrop.hide()
 
 def main():
     log_fmt = "%(module)s: %(message)s"
