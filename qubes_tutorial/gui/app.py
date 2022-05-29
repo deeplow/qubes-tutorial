@@ -127,11 +127,14 @@ class TutorialUIDbusService(dbus.service.Object):
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
+        align_vertical = ui_item_dict.get('align_vertical', 'center')
+        align_horizontal = ui_item_dict.get('align_horizontal', 'center')
         has_ok_btn = ui_item_dict.get('has_ok_btn')
         if has_ok_btn == "True":
-            self.step_info.update(title, text, on_ok_button_pressed)
+            self.step_info.update(title, text, align_horizontal, align_vertical,
+                                  on_ok_button_pressed)
         elif has_ok_btn == "False":
-            self.step_info.update(title, text)
+            self.step_info.update(title, text, align_horizontal, align_vertical)
         else:
             logging.error("unknown value for 'has_ok_btn'")
 
@@ -256,7 +259,9 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
         self.set_keep_above(True)
         self.set_decorated(False)
 
-    def update(self, title, text, ok_button_pressed_callback=None):
+    def update(self, title, text,
+               align_horizontal="center", align_vertical="center",
+               ok_button_pressed_callback=None):
         self.title.set_label(title)
         self.text.set_label(text)
         self.show_all()
@@ -266,9 +271,50 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
         else:
             self.ok_button_pressed_callback = ok_button_pressed_callback
 
+        self.align_vertical(align_horizontal, align_vertical)
+
     @Gtk.Template.Callback()
     def on_ok_btn_pressed(self, button):
         self.ok_button_pressed_callback()
+
+    def align_vertical(self, align_horizontal, align_vertical):
+        self.set_gravity(Gdk.Gravity.NORTH_EAST)
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
+        (widget_width, widget_height) = self.get_size()
+        x = None
+        y = None
+
+        if "%" in align_horizontal:
+            percent = int(align_horizontal.strip('%'))
+            x = (percent/100) * screen_width - widget_width/2
+        else:
+            if align_horizontal == "left":
+                x = screen_width/4 - widget_width/2
+            elif align_horizontal == "center":
+                x = screen_width/2 - widget_width/2
+            elif align_horizontal == "right":
+                x = 3*screen_width/4 - widget_width/2
+
+        if "%" in align_vertical:
+            percent = int(align_vertical.strip('%'))
+            y = (percent/100) * screen_width - widget_height/2
+        else:
+            if align_vertical == "top":
+                y = screen_height/4 - widget_height/2
+            elif align_vertical == "center":
+                y = screen_height/2 - widget_height/2
+            elif align_vertical == "bottom":
+                y = 3*screen_height/4 - widget_height/2
+
+        if x is None:
+            raise Exception("x must be either a percentage (e.g. 20%) or 'left',"\
+                            "'center' or 'right'")
+        if y is None:
+            raise Exception("y must be either a percentage or 'top',"\
+                            "'center' or 'bottom'")
+        self.move(x, y)
 
 class StepInformationPointing(Gtk.Window, TutorialUIInterface):
     """
