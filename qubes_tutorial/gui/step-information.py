@@ -8,7 +8,7 @@ import cairo
 
 
 class StepIndicator(Gtk.Window):
-    def __init__(self, text):
+    def __init__(self, text, x, y):
         Gtk.Window.__init__(self)
         self.set_border_width(10)
         self.set_default_size(400, 200)
@@ -27,7 +27,43 @@ class StepIndicator(Gtk.Window):
 
         self._create_dummy_boxes()
         self._create_popover(text)
+        self._position_on_screen(x, y)
 
+    def _position_on_screen(self, x, y):
+        """ Positions popover arrow over specified point """
+
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        height = primary_monitor.get_geometry().height
+        width  = primary_monitor.get_geometry().width
+
+        # TODO fit window's size to popover's dimentions
+
+        # select the corner to which the popover is pointing
+        shifted_x = x - width  / 2
+        shifted_y = y - height / 2
+        target = None
+
+        if shifted_x >= 0:
+
+
+            if shifted_y <= 0:  # 1st quadrant
+                target = self.dummy_top_right
+
+            else:               # 4th quadrant
+                target = self.dummy_bottom_right
+
+        else:
+            if shifted_y <= 0:  # 2nd quadrant
+                target = self.dummy_top_left
+
+            else:               # 3rd quadrant
+                target = self.dummy_bottom_left
+
+        self.popover.set_relative_to(target)
+
+        # TODO adjust window size
+        # TODO move window to correct location
+        # self.move(x, y)
 
     def _create_dummy_boxes(self):
         """ Creates dummy pointable objects at the edges of the window """
@@ -101,6 +137,5 @@ class StepIndicator(Gtk.Window):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-win = StepIndicator("Some random text here")
-win.show_all()
+StepIndicator("Some random text here", 0, 0).show_all()
 Gtk.main()
