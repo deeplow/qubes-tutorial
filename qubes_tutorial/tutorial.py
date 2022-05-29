@@ -85,6 +85,7 @@ class Step:
 
     def __init__(self, name: str):
         self.name = name
+        self.transitions = {}
 
     def get_name(self):
         return self.name
@@ -92,14 +93,19 @@ class Step:
     def is_last(self):
         return self.name == "end"
 
-    def add_transition(self, interaction, target_step):
-        interactions = self.transitions.get(target_step)
-        if interactions == None:
-            self.transitions[target_step] = [interaction]
-        else:
-            self.transitions[target_step].append(interaction)
+    def add_transition(self, interaction: Interaction, target_step):
+        if self.has_transition(interaction):
+            raise TutorialDuplicateTransitionException(self, target_step)
 
-    def transition(self, interaction: Interaction):
+        self.transitions[interaction] = target_step
+
+    def has_transition(self, interaction: Interaction):
+        for tentative_interaction in self.transitions.keys():
+            if interaction == tentative_interaction:
+                return True
+        return False
+
+    def next(self, interaction: Interaction):
         for possible_interaction in self.transitions.keys():
             if possible_interaction == interaction: # FIXME in the future check if is subset
                 return self.transitions.get(possible_interaction)
@@ -185,6 +191,11 @@ class TutorialDuplicateStepException(TutorialException):
         message = "Step '{}' is duplicated".format(step_name)
         super().__init__(message)
 
+class TutorialDuplicateTransitionException(TutorialException):
+    def __init__(self, source_step: Step, target_step: Step):
+        message = "Step '{}' already has a transition to step '{}'".\
+            format(source_step.name, target_step.name)
+        super().__init__(message)
 
 if __name__ == "__main__":
     main()
