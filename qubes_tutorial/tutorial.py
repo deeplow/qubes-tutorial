@@ -291,8 +291,6 @@ class Tutorial:
             return
 
         source_step.add_transition(interaction, target_step)
-        target_step.add_transition(interaction, source_step)
-
 
     def has_transition(self, source_step_name: str, interaction: Interaction, target_step_name: str) -> bool:
         source_step = self.get_step(source_step_name)
