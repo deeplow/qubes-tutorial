@@ -341,7 +341,9 @@ class Tutorial:
             self.current_step.teardown()
             next_step = self.current_step.next(interaction)
             if next_step.is_last():
-                pass # FIXME do something
+                # TODO close UI process
+                # TODO disable tutorial in components
+                exit()
             else:
                 self.current_step = next_step
 
