@@ -27,6 +27,7 @@ class CurrentTaskInfo(Gtk.Dialog):
 
     def __init__(self):
         super().__init__()
+        self.set_keep_above(True)
         self.hide() # starts hidden
 
     def update(self, task_n, text, ok_callback, exit_callback):
@@ -81,6 +82,7 @@ class StepInformation(Gtk.Dialog):
 
     def __init__(self):
         super().__init__()
+        self.set_keep_above(True)
 
     def update(self, title, text, ok_button_pressed_callback=None):
         self.title.set_label(title)
@@ -107,6 +109,7 @@ class ModalWindow(Gtk.Window):
     def __init__(self):
         super().__init__()
         self.custom_modal = None
+        self.set_keep_above(True)
 
     def update(self, step_ui_path, title,
                  next_button_label, next_button_callback,
