@@ -191,6 +191,7 @@ class TutorialWindow(Gtk.Window, TutorialUIInterface):
         super().__init__()
         self.set_keep_above(True)
         self.set_decorated(False)
+        self.set_skip_taskbar_hint(True)
 
         primary_monitor = self.get_screen().get_display().get_primary_monitor()
         self.screen_width = primary_monitor.get_geometry().width
