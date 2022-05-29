@@ -11,6 +11,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
 
 import qubes_tutorial.gui.ui as ui
+from qubes_tutorial import tutorial
 
 
 class TutorialUI(dbus.service.Object):
@@ -36,16 +37,6 @@ class TutorialUI(dbus.service.Object):
         self.connect_signals()
 
         Gtk.main()
-
-    def send_interaction(self, interaction_str):
-        """Configures DBus proxy to communicate with tutorial loop"""
-
-        bus = dbus.SessionBus()
-        logging.info("sending interaction")
-        proxy = bus.get_object('org.qubes.tutorial.interactions', '/')
-        register_interaction_proxy =\
-            proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
-        register_interaction_proxy(interaction_str)
 
     def setup_widgets(self):
         self.modal = ui.ModalWindow()
@@ -115,11 +106,11 @@ class TutorialUI(dbus.service.Object):
 
         def on_next_button_pressed():
             # FIXME send interaction "click main button"
-            self.send_interaction("tutorial:next")
+            tutorial.send_interaction("tutorial:next")
 
         def on_back_button_pressed():
             # FIXME send interaction "click secondary button"
-            self.send_interaction("tutorial:back")
+            tutorial.send_interaction("tutorial:back")
 
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)
@@ -133,7 +124,7 @@ class TutorialUI(dbus.service.Object):
 
     def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
-            self.send_interaction("tutorial:next")
+            tutorial.send_interaction("tutorial:next")
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
@@ -157,10 +148,10 @@ class TutorialUI(dbus.service.Object):
         task_description  = ui_item_dict.get('task_description')
 
         def on_ok():
-            self.send_interaction("tutorial:next")
+            tutorial.send_interaction("tutorial:next")
 
         def on_exit():
-            self.send_interaction("tutorial:exit")
+            tutorial.send_interaction("tutorial:exit")
 
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 

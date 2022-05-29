@@ -127,6 +127,17 @@ class Step:
         return dump
 
 
+def send_interaction(interaction_str: str):
+    """Configures DBus proxy to communicate with tutorial loop"""
+
+    bus = dbus.SessionBus()
+    logging.info("sending interaction")
+    proxy = bus.get_object('org.qubes.tutorial.interactions', '/')
+    register_interaction_proxy =\
+        proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
+    register_interaction_proxy(interaction_str)
+
+
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
 
