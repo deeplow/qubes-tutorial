@@ -13,3 +13,16 @@ def setup_modal(template_path, title,
     window.show_all()
 
     Gtk.main()
+
+
+def setup_step_information(title, text, callback):
+    dialog = Gtk.MessageDialog(
+        flags=0,
+        message_type=Gtk.MessageType.INFO,
+        buttons=Gtk.ButtonsType.OK,
+        text=title,
+    )
+    dialog.format_secondary_text(text)
+    dialog.run()
+    dialog.destroy()
+    callback()

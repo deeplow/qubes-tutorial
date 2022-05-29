@@ -161,7 +161,7 @@ class StepUI:
             if ui_type == "modal":
                 self._setup_ui_modal(ui_item_dict, interactions_q)
             elif ui_type == "step_information":
-                pass
+                self._setup_ui_step_information(ui_item_dict, interactions_q)
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
@@ -183,7 +183,14 @@ class StepUI:
                        next_button_label, on_next_button_pressed,
                        back_button_label, on_back_button_pressed)
 
+    def _setup_ui_step_information(self, ui_item_dict, interactions_q):
 
+        def on_ok_button_pressed():
+            interactions_q.put(Interaction("click OK"))
+
+        title = ui_item_dict.get('title')
+        text  = ui_item_dict.get('text')
+        ui.setup_step_information(title, text, on_ok_button_pressed)
 
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
