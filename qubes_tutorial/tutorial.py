@@ -198,8 +198,8 @@ class Tutorial:
             current_step = self.get_step(step_data['name'])
             for transition in step_data['transitions']:
                 next_step = self.get_step(transition['step'])
-                interaction_type = transition['interaction_type']
-                interaction = Interaction(interaction_type)
+                interaction = transition['interaction']
+                interaction = Interaction(interaction)
                 self.add_transition(current_step, interaction, next_step)
 
         self.check_integrity()

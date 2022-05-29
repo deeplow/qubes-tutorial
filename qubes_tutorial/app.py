@@ -115,11 +115,11 @@ class TutorialUI(dbus.service.Object):
 
         def on_next_button_pressed():
             # FIXME send interaction "click main button"
-            self.send_interaction("click main button")
+            self.send_interaction("tutorial:next")
 
         def on_back_button_pressed():
             # FIXME send interaction "click secondary button"
-            self.send_interaction("click secondary button")
+            self.send_interaction("tutorial:back")
 
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)
@@ -133,7 +133,7 @@ class TutorialUI(dbus.service.Object):
 
     def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
-            self.send_interaction("click OK")
+            self.send_interaction("tutorial:next")
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
@@ -157,10 +157,10 @@ class TutorialUI(dbus.service.Object):
         task_description  = ui_item_dict.get('task_description')
 
         def on_ok():
-            self.send_interaction("click OK")
+            self.send_interaction("tutorial:next")
 
         def on_exit():
-            self.send_interaction("exit")
+            self.send_interaction("tutorial:exit")
 
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 
