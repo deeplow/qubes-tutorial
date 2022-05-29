@@ -168,7 +168,10 @@ class TutorialUIDbusService(dbus.service.Object):
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 
 
-class TutorialWindow(Gtk.Window):
+class TutorialUIInterface:
+    """
+    Methods required by any Tutorial UI element
+    """
 
     def update(self, *args, **kwargs):
         """
@@ -181,6 +184,30 @@ class TutorialWindow(Gtk.Window):
         What needs to be run when the widget is no longer being displayed
         """
         pass
+
+class TutorialWindow(Gtk.Window, TutorialUIInterface):
+
+    def __init__(self):
+        super().__init__()
+        self.set_keep_above(True)
+        self.set_decorated(False)
+
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        self.screen_width = primary_monitor.get_geometry().width
+        self.screen_height = primary_monitor.get_geometry().height
+
+    def make_widget_transparent(self, widget):
+        screen = self.get_screen()
+        visual = screen.get_rgba_visual()
+        if visual != None and screen.is_composited():
+            widget.set_visual(visual)
+        widget.set_app_paintable(True)
+
+    def move_to_center(self):
+        self.set_gravity(Gdk.Gravity.SOUTH_EAST)
+        (widget_width, widget_height) = self.get_size()
+        self.move(self.screen_width/2 - widget_width/2, self.screen_height/2 - widget_height/2)
+
 
 @Gtk.Template(filename=os.path.join(ui_dir, "current_task.ui"))
 class CurrentTaskInfo(TutorialWindow):
@@ -202,8 +229,6 @@ class CurrentTaskInfo(TutorialWindow):
 
     def __init__(self):
         super().__init__()
-        self.set_keep_above(True)
-        self.set_decorated(False)
         self.connect_signals()
         self.hide() # starts hidden
         self.button_is_exit = False
@@ -230,18 +255,7 @@ class CurrentTaskInfo(TutorialWindow):
     def move_to_corner(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width  = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
-        self.move(screen_width - widget_width, screen_height - widget_height)
-
-    def move_to_center(self):
-        self.set_gravity(Gdk.Gravity.SOUTH_EAST)
-        (widget_width, widget_height) = self.get_size()
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width  = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
-        self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
+        self.move(self.screen_width - widget_width, self.screen_height - widget_height)
 
     def on_btn_pressed(self, button):
         if self.button_is_exit:
@@ -262,8 +276,6 @@ class StepInformation(TutorialWindow):
 
     def __init__(self):
         super().__init__()
-        self.set_keep_above(True)
-        self.set_decorated(False)
         self.connect_signals()
 
     def connect_signals(self):
@@ -288,34 +300,31 @@ class StepInformation(TutorialWindow):
 
     def align_vertical(self, align_horizontal, align_vertical):
         self.set_gravity(Gdk.Gravity.NORTH_EAST)
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
         (widget_width, widget_height) = self.get_size()
         x = None
         y = None
 
         if "%" in align_horizontal:
             percent = int(align_horizontal.strip('%'))
-            x = (percent/100) * screen_width - widget_width/2
+            x = (percent/100) * self.screen_width - widget_width/2
         else:
             if align_horizontal == "left":
-                x = screen_width/4 - widget_width/2
+                x = self.screen_width/4 - widget_width/2
             elif align_horizontal == "center":
-                x = screen_width/2 - widget_width/2
+                x = self.screen_width/2 - widget_width/2
             elif align_horizontal == "right":
-                x = 3*screen_width/4 - widget_width/2
+                x = 3*self.screen_width/4 - widget_width/2
 
         if "%" in align_vertical:
             percent = int(align_vertical.strip('%'))
-            y = (percent/100) * screen_width - widget_height/2
+            y = (percent/100) * self.screen_width - widget_height/2
         else:
             if align_vertical == "top":
-                y = screen_height/4 - widget_height/2
+                y = self.screen_height/4 - widget_height/2
             elif align_vertical == "center":
-                y = screen_height/2 - widget_height/2
+                y = self.screen_height/2 - widget_height/2
             elif align_vertical == "bottom":
-                y = 3*screen_height/4 - widget_height/2
+                y = 3*self.screen_height/4 - widget_height/2
 
         if x is None:
             raise Exception("x must be either a percentage (e.g. 20%) or 'left',"\
@@ -325,6 +334,7 @@ class StepInformation(TutorialWindow):
                             "'center' or 'bottom'")
         self.move(x, y)
 
+
 class StepInformationPointing(TutorialWindow):
     """
     Indicates information about the current step, but instead of having to be
@@ -332,21 +342,9 @@ class StepInformationPointing(TutorialWindow):
     a coordinate on the screen.
     """
     def __init__(self):
-        Gtk.Window.__init__(self)
-
-        self.set_keep_above(True)
+        super().__init__()
         self.set_border_width(10)
-
-        # making the window transparent
-        screen = self.get_screen()
-        visual = screen.get_rgba_visual()
-        if visual != None and screen.is_composited():
-            self.set_visual(visual)
-        self.set_app_paintable(True)
-
-        # removing all window decorations
-        self.set_decorated(False)
-
+        self.make_widget_transparent(self)
         self._create_dummy_boxes()
 
     def update(self, text, subtext, x, y, corner):
@@ -371,15 +369,12 @@ class StepInformationPointing(TutorialWindow):
         win_width  = 500
         win_height = 200
         self.resize(win_width, win_height)
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width  = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
         target = None
 
         if x < 0:
-            x = screen_width + x
+            x = self.screen_width + x
         if y < 0:
-            y = screen_height + y
+            y = self.screen_height + y
 
         if corner == "top right":
             target = self.dummy_top_right
@@ -458,8 +453,6 @@ class ModalWindow(TutorialWindow):
     def __init__(self):
         super().__init__()
         self.custom_modal = None
-        self.set_keep_above(True)
-        self.set_decorated(False)
         self.create_backdrop()
         self.connect_signals()
 
@@ -474,11 +467,7 @@ class ModalWindow(TutorialWindow):
         self.backdrop = Gtk.Window()
 
         # enable compositing so it can be translucent
-        screen = self.get_screen()
-        visual = screen.get_rgba_visual()
-        if visual != None and screen.is_composited():
-            self.backdrop.set_visual(visual)
-        self.backdrop.set_app_paintable(True)
+        self.make_widget_transparent(self.backdrop)
 
         self.backdrop.fullscreen()
 
@@ -490,10 +479,7 @@ class ModalWindow(TutorialWindow):
         self.set_modal(True)
 
     def backdrop_draw(self, drawing_area, ctx):
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
-        rect = ctx.rectangle(0, 0, screen_width, screen_height)
+        rect = ctx.rectangle(0, 0, self.screen_width, self.screen_height)
         ctx.set_source_rgb(0, 0, 0)
         ctx.fill()
 
@@ -525,14 +511,6 @@ class ModalWindow(TutorialWindow):
             self.back_button.set_visible(True)
         else:
             self.back_button.set_visible(False)
-
-    def move_to_center(self):
-        self.set_gravity(Gdk.Gravity.SOUTH_EAST)
-        (widget_width, widget_height) = self.get_size()
-        primary_monitor = self.get_screen().get_display().get_primary_monitor()
-        screen_width  = primary_monitor.get_geometry().width
-        screen_height = primary_monitor.get_geometry().height
-        self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
     def on_next_button_pressed(self, button):
         self.next_button_callback()
