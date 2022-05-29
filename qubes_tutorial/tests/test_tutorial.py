@@ -6,6 +6,10 @@ import os
 import re
 from queue import Queue
 
+import logging
+logger = logging.getLogger()
+logging.basicConfig(level=logging.DEBUG)
+
 class TestTutorial(unittest.TestCase):
 
     def setUp(self):
@@ -243,9 +247,10 @@ class TestTutorialIncluded(unittest.TestCase):
         return tut
 
     def test_onboarding_tutorial_1(self):
+
         tut = self._load_tutorial("../included_tutorials/onboarding-tutorial-1/README.md")
-        for interactions in tut.generate_successful_interaction_sequences():
-            print("interaction path 1")
+        for i, interactions in enumerate(tut.generate_successful_interaction_sequences()):
+            logging.info("interaction path " + str(i))
             interactions_q = Queue()
             for interaction in interactions:
                 interactions_q.put(interaction)
