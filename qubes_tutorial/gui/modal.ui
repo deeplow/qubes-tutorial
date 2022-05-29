@@ -113,7 +113,7 @@
             <property name="can-focus">False</property>
             <child>
               <object class="GtkBox" id="modal_placeholder">
-                <placeholder/>
+                <property name="can-focus">False</property>
               </object>
             </child>
           </object>
@@ -127,6 +127,9 @@
           <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <child>
+              <placeholder/>
+            </child>
             <child>
               <object class="GtkButton" id="back_button">
                 <property name="label" translatable="yes">Learn the Basics »
@@ -143,9 +146,6 @@
                 <property name="padding">45</property>
                 <property name="position">4</property>
               </packing>
-            </child>
-            <child>
-              <placeholder/>
             </child>
             <child>
               <object class="GtkButton" id="next_button">
@@ -176,22 +176,7 @@
       </object>
     </child>
     <child type="titlebar">
-      <object class="GtkHeaderBar" id="headerbar">
-        <property name="name">headerbar</property>
-        <property name="can-focus">False</property>
-        <property name="title" translatable="yes">Welcome</property>
-        <property name="spacing">0</property>
-        <property name="show-close-button">True</property>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <style>
-          <class name="flat"/>
-        </style>
-      </object>
+      <placeholder/>
     </child>
   </template>
 </interface>

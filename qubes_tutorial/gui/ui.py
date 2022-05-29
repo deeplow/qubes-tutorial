@@ -110,6 +110,7 @@ class ModalWindow(Gtk.Window):
         super().__init__()
         self.custom_modal = None
         self.set_keep_above(True)
+        self.set_decorated(False)
 
     def update(self, step_ui_path, title,
                  next_button_label, next_button_callback,
