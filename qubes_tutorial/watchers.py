@@ -22,12 +22,6 @@ class InteractionLogger:
     """Singleton class manging all watchers"""
 
     def __init__(self, scope: list):
-        # vm-specific logs monitoring
-        #for vm in scope:
-        #    utils.enable_vm_debug(vm)
-        #    self.watchers.append(
-        #        GuidLogWatcher(vm))
-
         self.watchers = [
             QrexecWatcher(scope),
             QubesAdminWatcher(scope)
@@ -125,47 +119,6 @@ class LogWatcher(AbstractWatcher):
                     continue
                 line += tail
             return line
-
-
-class GuidLogWatcher(LogWatcher):
-    """ Reads logs from guid interactions for qube """
-
-    def __init__(self, vm):
-        logging.info("starting guid logging for vm {}".format(vm))
-        log_file_path = "/var/log/qubes/guid.{}.log".format(vm)
-        self.vm = vm
-        super().__init__(log_file_path)
-
-    def generate_interaction(self, line):
-        if "Created 0x" in line:
-            self.process_line_create(line)
-
-        elif "XDestroyWindow" in line:
-            self.process_line_destroy(line)
-
-    def process_line_create(self, line):
-        dom0_window_id = re.search("0x[0-9a-f]+", line).group()
-        logging.debug("Created window (id: {})".format(dom0_window_id))
-
-        if not utils.window_viewable(dom0_window_id):
-            logging.error("ignoring window {} \
-                (not viewable)".format(dom0_window_id))
-        #elif "x/y -100/-100" in line:
-            # Hidden windows (TODO understand)
-            #   these are windows of the whole VM's screen
-            #logging.debug("Hidden Window... ignoring (id: {})"\
-            #    .format(dom0_window_id))
-        else:
-            time.sleep(0.1) # give window time to fully setup
-            #yield CreateWindowInteraction(self.vm, dom0_window_id)
-            interactions.register("qubes-guid:{}:create-window".format(self.vm))
-
-    def process_line_destroy(self, line):
-        dom0_window_id = re.search("0x[0-9a-f]+", line).group()
-        logging.debug("Destroyed window (id: {})".format(dom0_window_id))
-
-        #yield CloseWindowInteraction(self.vm, dom0_window_id)
-        interactions.register("qubes-guid:{}:close-window".format(self.vm))
 
 
 class AbstractSysLogWatcher(AbstractWatcher):
