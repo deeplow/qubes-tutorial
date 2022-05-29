@@ -53,6 +53,107 @@ class TestTutorial(unittest.TestCase):
         next_step = step.next(ignored_interaction)
         self.assertIsNone(next_step)
 
+    def test_start_tutorial_linear(self):
+        """All interactions move to the next step
+
+            step-1 ----> step-2 ----> ... ----> step-n
+                    (1)          (2)       (3)
+        """
+
+        # GIVEN a tutorial where all interaction move to the next step
+        num_steps = 10
+        tut = Mock()
+        interactions_list = [] # builder for interactions_q
+        previous_step = None
+        last_step = None
+
+        for step_n in range(1, num_steps+1):
+            step = tutorial.Step("step-{}".format(step_n))
+
+            if step_n == 1:
+                tut.get_first_step = Mock(return_value=step)
+            else:
+                interaction = Mock()
+                interactions_list.append(interaction)
+                previous_step.add_transition(interaction, step)
+
+            if step_n == num_steps:
+                step.is_last = Mock(return_value=True)
+                last_step = step
+            else:
+                step.is_last = Mock(return_value=False)
+
+            previous_step = step
+
+        interactions_q = Mock()
+        interactions_q.get = Mock()
+        interactions_q.get.side_effect = interactions_list
+
+        # WHEN the tutorial is ran
+        tutorial.start_tutorial(tut, interactions_q)
+
+        # THEN went through same n. of interactions as the best-case scenario
+        self.assertEqual(interactions_q.get.call_count, num_steps-1)
+
+        # THEN reached last step
+        self.assertEqual(last_step.is_last.call_count, 1)
+
+    def test_start_tutorial_linear_next_step_every_2_interactions(self):
+            """Every second interaction moves to the next step
+
+              step-1 -----> step-2 --> ... --> step-n
+               |   ^  (2)   |   ^
+               |(1)|        |(3)|
+               +---+        +---+
+              """
+
+            # GIVEN a tutorial where every second interaction is useful
+            num_steps = 10
+            tut = Mock()
+            interactions_list = [] # builder for interactions_q
+            previous_step = None
+            last_step = None
+
+            for step_n in range(1, num_steps+1):
+                step = tutorial.Step("step-{}".format(step_n))
+
+                if step_n == 1:
+                    tut.get_first_step = Mock(return_value=step)
+                    first_step = step
+                else:
+                    interaction_real = Mock()
+                    interactions_list.append(interaction_real)
+                    previous_step.add_transition(interaction_real, step)
+
+                if step_n == num_steps:
+                    step.is_last = Mock(return_value=True)
+                    last_step = step
+                else:
+                    step.is_last = Mock(return_value=False)
+
+                previous_step = step
+                interaction_fake = Mock()
+                interactions_list.append(interaction_fake)
+
+            interactions_q = Mock()
+            interactions_q.get = Mock()
+            interactions_q.get.side_effect = interactions_list
+
+            # WHEN running tutorial
+            tutorial.start_tutorial(tut, interactions_q)
+
+            # THEN went through more interactions than best-case scenario
+            self.assertGreater(interactions_q.get.call_count,
+                               num_steps-1)
+
+            # THEN went through less interactions than worst-case scenario
+            self.assertLess(interactions_q.get.call_count,
+                            len(interactions_list))
+
+            # THEN reached last step
+            self.assertEqual(last_step.is_last.call_count, 1)
+
+
 class TestTutorialSerialization(unittest.TestCase):
 
     def test_save(self):
