@@ -28,13 +28,7 @@ class TutorialUI(dbus.service.Object):
         # ui update event queue
         self.event_q = Queue()
 
-        # setup user interface
-        #self.builder = Gtk.Builder()
-        #dir_path = os.path.dirname(os.path.realpath(__file__))
-        #ui_path = os.path.join(dir_path, 'tutorial.glade')
-        #self.builder.add_from_file(ui_path)
         self.setup_widgets()
-        self.connect_signals()
 
         Gtk.main()
 
@@ -47,27 +41,6 @@ class TutorialUI(dbus.service.Object):
             self.modal,
             self.step_info
         ]
-        #self.tutorial_info = self.builder.get_object("TutorialInformation")
-        #self.tutorial_info_ok_btn = self.builder.get_object('tutorial_info_ok_btn')
-        #self.tutorial_modal.show_all()
-        #self.tutorial_info.show_all()
-
-    def connect_signals(self):
-        # modal_next
-        # modal_back
-        #self.tutorial_info_ok_btn.connect(
-        #    'clicked', self.on_clicked_tutorial_info_ok_btn)
-        # task_exit
-        return
-
-    #def on_clicked_tutorial_info_ok_btn(self,button):
-        #logging.info("Moving to next step")
-        #bus = dbus.SessionBus()
-        #logging.info("sending interaction")
-        #proxy = bus.get_object('org.qubes.tutorial.interactions', '/')
-        #register_interaction = proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
-        #register_interaction("next_step")
-
 
     @dbus.service.method('org.qubes.tutorial.ui')
     def setup_ui(self, ui_dict):
@@ -107,11 +80,9 @@ class TutorialUI(dbus.service.Object):
         logging.debug("setting up ui modal")
 
         def on_next_button_pressed():
-            # FIXME send interaction "click main button"
             interactions.register("tutorial:next")
 
         def on_back_button_pressed():
-            # FIXME send interaction "click secondary button"
             interactions.register("tutorial:back")
 
         template = ui_item_dict['template']
@@ -145,7 +116,6 @@ class TutorialUI(dbus.service.Object):
         screen the goal of the current task. When the user has acknowledged,
         it will show on the bottom-right corner as a reminder.
         """
-
         task_number  = int(ui_item_dict.get('task_number'))
         task_description  = ui_item_dict.get('task_description')
 
