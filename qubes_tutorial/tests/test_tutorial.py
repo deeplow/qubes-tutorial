@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 class TestTutorial(unittest.TestCase):
 
     def setUp(self):
-        self.tutorial = tutorial.Tutorial(ui_callback=Mock())
+        self.tutorial = tutorial.Tutorial()
 
     def test_001_add_step(self):
         step = tutorial.Step("step1")
@@ -178,7 +178,7 @@ steps:
 - name: end
 """
 
-        tut = tutorial.Tutorial(ui_callback=Mock())
+        tut = tutorial.Tutorial()
         step_start  = tutorial.Step("start")
         step_middle = tutorial.Step("middle")
         step_end    = tutorial.Step("end")
@@ -200,7 +200,7 @@ steps:
 class TestTutorialDeserialization(unittest.TestCase):
 
     def setUp(self):
-        self.tut = tutorial.Tutorial(ui_callback=Mock())
+        self.tut = tutorial.Tutorial()
 
     @property
     def test_name(self):
@@ -242,7 +242,7 @@ class TestTutorialIncluded(unittest.TestCase):
         cwd = os.path.dirname(os.path.realpath(__file__))
         tut_path = os.path.join(cwd, file_path)
         tut_path = os.path.abspath(tut_path)
-        tut = tutorial.TutorialDebuggable(ui_callback=Mock())
+        tut = tutorial.TutorialDebuggable()
         tut.load_as_file(tut_path)
         return tut
 

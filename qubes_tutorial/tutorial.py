@@ -162,15 +162,11 @@ class Tutorial:
     where system states are nodes and edges are interactions.
 
     "Steps" are the nodes and "interactions" are the arcs
-
-    Args:
-      :ui_callback func: callback function to update UI
     """
 
-    def __init__(self, ui_callback):
+    def __init__(self):
         self.tutorial_dir = None
         self.step_map = OrderedDict() # maps a step's name to a step object
-        self.ui_callback = ui_callback
 
     def check_integrity(self):
         """

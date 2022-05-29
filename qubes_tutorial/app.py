@@ -70,12 +70,9 @@ def app_main(tutorial_path, tutorial=None):
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
 
-    tutorial = Tutorial(ui_setup_callback=setup_ui)
+    tutorial = Tutorial()
     tutorial.load_as_file(tutorial_path)
     threading.Thread(target=tutorial.start).start()
-
-
-
 
 class TutorialApp(Gtk.Application):
 
@@ -83,7 +80,7 @@ class TutorialApp(Gtk.Application):
         super().__init__()
         self.set_application_id("org.qubes.qui.Tutorial")
 
-        self.tutorial = Tutorial(ui_setup_callback=self.setup_ui)
+        self.tutorial = Tutorial()
         self.tutorial.load_as_file(tutorial_path)
 
     def do_interaction(self, arg):
