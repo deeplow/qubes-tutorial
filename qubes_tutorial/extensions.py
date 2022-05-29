@@ -5,7 +5,7 @@ import inspect
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 import qubes_tutorial.interactions as interactions
 
@@ -67,3 +67,38 @@ class TutorialExtension(dbus.service.Object):
         self.make_do_methods_dbus_services()
         bus = dbus.service.BusName(self.__bus_name__, bus=dbus.SessionBus())
         dbus.service.Object.__init__(self, bus, f'/{component_name}')
+
+
+class GtkTutorialExtension(TutorialExtension):
+
+    HIGHLIGHT_CSS = b"""
+    @keyframes animated-highlight {
+    from { box-shadow: inset 0px 0px 4px  @theme_selected_bg_color; }
+    to   { box-shadow: inset 0px 0px 10px @theme_selected_bg_color; }
+    }
+
+    .highlighted {
+    animation: animated-highlight 1s infinite alternate;
+    }
+    """
+
+    def __init__(self, component_name):
+        super().__init__(component_name)
+        self._add_highlight_style()
+
+    def _add_highlight_style(self):
+        screen = Gdk.Screen.get_default()
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data(self.HIGHLIGHT_CSS)
+        Gtk.StyleContext.add_provider_for_screen(
+            screen,
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+def widget_highlight(widget):
+    widget.get_style_context().add_class("highlighted")
+
+def widget_highlight_remove(widget):
+    widget.get_style_context().remove_class("highlighted")
+
