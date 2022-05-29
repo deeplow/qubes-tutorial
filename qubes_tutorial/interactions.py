@@ -1,29 +1,34 @@
-import qubes_tutorial.utils
+import qubes_tutorial.utils as utils
+import yaml
 
-class Interaction:
+class Interaction():
     """ Defines an iteraction """
 
-    def __init__(self):
-        pass
+    def __init__(self, interaction_type):
+        self.type = interaction_type
 
     def gen_report(self):
         return "generic step"
 
+    def dump(self):
+        return self.__dict__
+
 class QubeInteraction(Interaction):
     """ Interaction inside one qube """
-    def __init__(self, vm):
+    def __init__(self, interaction_type, vm):
         self.vm = vm
-        super().__init__()
+        super().__init__(interaction_type)
 
 class InterQubeInteraction(Interaction):
     """ Interaction from one qube to another """
-    pass
+    def __init__(self, interaction_type):
+        super().__init__(interaction_type)
 
 class CreateWindowInteraction(QubeInteraction):
     """ Window was opened """
 
     def __init__(self, vm, dom0_window_id):
-        super().__init__(vm)
+        super().__init__("create-window", vm)
 
         self.id = dom0_window_id
         utils.screenshot_window(self.id)
@@ -39,7 +44,7 @@ class CloseWindowInteraction(QubeInteraction):
     """ Window was closed """
 
     def __init__(self, vm, dom0_window_id):
-        super().__init__(vm)
+        super().__init__("close-window", vm)
 
         self.id = dom0_window_id
         #self.title = utils.get_window_title(self.id)
@@ -54,6 +59,12 @@ class QrexecPolicyInteraction(InterQubeInteraction):
     """ Qrexec (inter-qube) was checked against Policy """
 
     def __init__(self, success, policy, source, target):
+
+        if success:
+            super().__init__("qrexec-policy-allow")
+        else:
+            super().__init__("qrexec-policy-reject")
+
         self.success = success
         self.policy = policy
         self.source = source
@@ -68,3 +79,7 @@ class QrexecPolicyInteraction(InterQubeInteraction):
         else:
             return ["Rejected inter-qube action: " + action]
 
+
+class InteractionException(Exception):
+    def __init__(self, message="Exception occured in an interaction."):
+        super().__init__(message)

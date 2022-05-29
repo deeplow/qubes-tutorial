@@ -2,6 +2,8 @@ import logging
 import argparse
 import sys
 from queue import Queue
+import yaml
+from collections import OrderedDict
 
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
@@ -81,11 +83,9 @@ def init_gui():
 class Step:
     """ Represents a current step in a tutorial """
 
-    transitions = {} # map: interaction -> step
-
     def __init__(self, name: str):
         self.name = name
-        self.transitions = {}
+        self.transitions = OrderedDict() # map: interaction -> step
 
     def get_name(self):
         return self.name
@@ -111,6 +111,13 @@ class Step:
                 return self.transitions.get(possible_interaction)
         return None
 
+    def dump(self):
+        dump = { "name": self.name }
+        if len(self.transitions) > 0:
+            dump["transitions"] = [t.dump() for t in self.transitions]
+
+        return dump
+
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
 
@@ -123,14 +130,29 @@ class Tutorial:
     def __init__(self, infile=None):
         if not infile:
             self.create_mode = True
-            self.step_map = {} # maps a step's name to a step object
+            self.step_map = OrderedDict() # maps a step's name to a step object
+        else:
+            self.load_as_file(infile)
 
+    def load_as_text(self, infile):
+        # two-pass approach:
+        #   1. load and create all steps (nodes)
+        #   2. add all transitions (edges)
+        pass # FIXME not implemented
 
-    def _load(self, infile):
-        # FIXME remove hardcoded
+    def load_as_file(self, infile):
+        pass # FIXME not implmented
 
-        # First create all Nodes, only then edges
-        pass
+    def save_as_text(self):
+        tutorial = {
+            "steps": [step.dump() for step in self.step_map.values()]
+        }
+        return yaml.safe_dump(tutorial)
+
+    def save_as_file(self, outfile):
+        with open(outfile, 'w'):
+            tutorial_text = self.save_as_text()
+            outfile.write(json.dumps(tutorial_text))
 
     def get_first_step(self) -> None:
         return self.step_map.get("start")
