@@ -11,7 +11,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib
 
 import qubes_tutorial.gui.ui as ui
-from qubes_tutorial import tutorial
+import qubes_tutorial.interactions as interactions
 
 
 class TutorialUI(dbus.service.Object):
@@ -106,11 +106,11 @@ class TutorialUI(dbus.service.Object):
 
         def on_next_button_pressed():
             # FIXME send interaction "click main button"
-            tutorial.register_interaction("tutorial:next")
+            interactions.register("tutorial:next")
 
         def on_back_button_pressed():
             # FIXME send interaction "click secondary button"
-            tutorial.register_interaction("tutorial:back")
+            interactions.register("tutorial:back")
 
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)
@@ -124,7 +124,7 @@ class TutorialUI(dbus.service.Object):
 
     def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
-            tutorial.register_interaction("tutorial:next")
+            interactions.register("tutorial:next")
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
@@ -148,10 +148,10 @@ class TutorialUI(dbus.service.Object):
         task_description  = ui_item_dict.get('task_description')
 
         def on_ok():
-            tutorial.register_interaction("tutorial:next")
+            interactions.register("tutorial:next")
 
         def on_exit():
-            tutorial.register_interaction("tutorial:exit")
+            interactions.register("tutorial:exit")
 
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 

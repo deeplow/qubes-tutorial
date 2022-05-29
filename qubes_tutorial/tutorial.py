@@ -2,8 +2,6 @@ import argparse
 import asyncio
 from collections import OrderedDict
 import dbus
-import dbus.service
-from dbus.mainloop.glib import DBusGMainLoop
 import json
 import yaml
 import logging
@@ -17,6 +15,7 @@ from gi.repository import GLib
 
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
+import qubes_tutorial.interactions as interactions
 
 def start_tutorial(tutorial_path):
     try:
@@ -99,8 +98,9 @@ class Step:
         # Sends a notification to the tutorial UI that it should update
         bus = dbus.SessionBus()
         proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
-        show_path_to_app = proxy.get_dbus_method('show_path_to_app', 'org.qubes.tutorial.qubesmenu')
-        logging.info(show_path_to_app(vm_name, app_name))
+        show_path_to_app = proxy.get_dbus_method('show_path_to_app',
+                                                 'org.qubes.tutorial.qubesmenu')
+        show_path_to_app(vm_name, app_name)
 
     def setup_ui(self):
         if self.ui_dict:
@@ -130,8 +130,9 @@ class Step:
         # Sends a notification to the tutorial UI that it should update
         bus = dbus.SessionBus()
         proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
-        remove_highlights = proxy.get_dbus_method('remove_highlights', 'org.qubes.tutorial.qubesmenu')
-        logging.info(remove_highlights())
+        remove_highlights = proxy.get_dbus_method('remove_highlights',
+                                                  'org.qubes.tutorial.qubesmenu')
+        remove_highlights()
 
     def get_name(self):
         return self.name
@@ -176,18 +177,6 @@ class Step:
 
         return dump
 
-
-def register_interaction(interaction_str: str):
-    """Configures DBus proxy to communicate with tutorial loop"""
-
-    bus = dbus.SessionBus()
-    logging.info("sending interaction")
-    proxy = bus.get_object('org.qubes.tutorial.interactions', '/')
-    register_interaction_proxy =\
-        proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
-    register_interaction_proxy(interaction_str)
-    return "done!"
-
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
 
@@ -204,7 +193,7 @@ class Tutorial:
             self.interactions_q = Queue()
         else:
             self.interactions_q = interactions_q
-        TutorialInteractionsListener(self.interactions_q)
+        interactions.TutorialInteractionsListener(self.interactions_q)
 
         # setup tutorial loop
         #   Currently dbus-python only supports Glib event loop (can't have our own)
@@ -454,26 +443,6 @@ class TutorialDuplicateTransitionException(TutorialException):
         message = "Step '{}' already has a transition to step '{}'".\
             format(source_step.name, target_step.name)
         super().__init__(message)
-
-class TutorialInteractionsListener(dbus.service.Object):
-
-    def __init__(self, interactions_q):
-        self.interactions_q = interactions_q
-
-        # start dbus loop
-        DBusGMainLoop(set_as_default=True)
-
-        # setup dbus for listening for events
-        bus_name = dbus.service.BusName("org.qubes.tutorial.interactions",
-                                        bus=dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus_name, '/')
-
-    @dbus.service.method('org.qubes.tutorial.interactions')
-    def register_interaction(self, interaction):
-        logging.info("Registered interaction " + interaction)
-        self.interactions_q.put(interaction)
-        return "registered interaction"
-
 
 def main():
     logging.basicConfig(

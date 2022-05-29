@@ -9,6 +9,7 @@ import asyncio
 
 from qubes_tutorial.interactions import *
 import qubes_tutorial.utils as utils
+import qubes_tutorial.interactions as interactions
 
 watchers = list()
 watchers_threads = list()
@@ -138,13 +139,16 @@ class GuidLogWatcher(LogWatcher):
             #    .format(dom0_window_id))
         else:
             time.sleep(0.1) # give window time to fully setup
-            yield CreateWindowInteraction(self.vm, dom0_window_id)
+            #yield CreateWindowInteraction(self.vm, dom0_window_id)
+            interactions.register("qubes-guid:{}:create-window".format(self.vm))
 
     def process_line_destroy(self, line):
         dom0_window_id = re.search("0x[0-9a-f]+", line).group()
         logging.debug("Destroyed window (id: {})".format(dom0_window_id))
 
-        yield CloseWindowInteraction(self.vm, dom0_window_id)
+        #yield CloseWindowInteraction(self.vm, dom0_window_id)
+        interactions.register("qubes-guid:{}:close-window".format(self.vm))
+
 
 class AbstractSysLogWatcher(AbstractWatcher):
     """ Reads logs from syslog """
@@ -189,7 +193,9 @@ class QrexecWatcher(AbstractSysLogWatcher):
             if fail_reason:
                 # FIXME the target may be None. Instead replace by the intended target
                 logging.info("\n\tdecision: deny\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}".format(policy, source, target))
-                yield QrexecPolicyInteraction(False, policy, source, target)
+                #yield QrexecPolicyInteraction(False, policy, source, target)
             else:
                 logging.info("\n\tdecision: allow\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}".format(policy, source, target))
-                yield QrexecPolicyInteraction(True, policy, source, target)
+                #yield QrexecPolicyInteraction(True, policy, source, target)
+                interactions.register("qubes-qrexec:{}:{}:{}".format(
+                    policy, source, target))
