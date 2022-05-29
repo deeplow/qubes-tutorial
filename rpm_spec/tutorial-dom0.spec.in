@@ -59,6 +59,7 @@ make install-dom0 DESTDIR=$RPM_BUILD_ROOT
 %{python3_sitelib}/qubes_tutorial/gui/__init__.py
 %{python3_sitelib}/qubes_tutorial/gui/*.py
 %{python3_sitelib}/qubes_tutorial/gui/*.ui
+%{python3_sitelib}/qubes_tutorial/gui/*.css
 
 %dir %{python3_sitelib}/qubes_tutorial/tests
 %{python3_sitelib}/qubes_tutorial/tests/__pycache__/*

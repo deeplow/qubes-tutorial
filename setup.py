@@ -20,7 +20,7 @@ setuptools.setup(
               "qubes_tutorial.gui",
               "qubes_tutorial.tests",),
     package_data = {
-            'qubes_tutorial.gui': ['*.ui', 'images/*'],
+            'qubes_tutorial.gui': ['*.ui', '*.css', 'images/*'],
     },
     entry_points={
         'console_scripts': [

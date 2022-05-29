@@ -6,6 +6,7 @@ import logging
 import os
 import enum
 from queue import Queue
+import pkg_resources
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -29,9 +30,18 @@ class TutorialUIDbusService(dbus.service.Object):
         # ui update event queue
         self.event_q = Queue()
 
+        self.setup_styling()
         self.setup_widgets()
 
         Gtk.main()
+
+    def setup_styling(self):
+        screen = Gdk.Screen.get_default()
+        provider = Gtk.CssProvider()
+        provider.load_from_path(pkg_resources.resource_filename(
+            __name__, 'tutorial-styling.css'))
+        Gtk.StyleContext.add_provider_for_screen(
+            screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def setup_widgets(self):
         self.modal = ModalWindow()
@@ -260,7 +270,7 @@ class ModalWindow(Gtk.Window):
     def move_to_center(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        screen_width    = self.get_screen().width()
+        screen_width  = self.get_screen().width()
         screen_height = self.get_screen().height()
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
