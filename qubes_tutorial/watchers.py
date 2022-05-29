@@ -177,6 +177,7 @@ class AbstractSysLogWatcher(AbstractWatcher):
 
     async def process_lines(self):
         self.journal.seek_tail()
+        self.journal.get_previous()
         while not self.terminate:
             event = self.journal.wait(100)
             if event == systemd.journal.APPEND:
