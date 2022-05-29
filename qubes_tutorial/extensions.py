@@ -15,6 +15,9 @@ EXT_OBJ_PATH = "/"
 
 tutorial_enabled = False
 
+def is_tutorial_enabled():
+    return tutorial_enabled
+
 def if_tutorial_enabled(func):
     """
     Function decorator that runs the function only if a tutorial is running
