@@ -67,11 +67,13 @@ def create_tutorial(outfile, scope, interactions_q):
 class Step:
     """ Represents a current step in a tutorial """
 
-    def __init__(self, name: str, ui_dict: dict=None, setup_dicts: dict=None):
+    def __init__(self, name: str, ui_dict: dict=None, setup_dicts: dict=None,
+                 teardown_dicts: dict=None):
         self.name = name
         self.transitions = OrderedDict() # map: interaction -> step
         self.ui_dict = ui_dict
         self.setup_dicts = setup_dicts
+        self.teardown_dicts = teardown_dicts
 
     def setup(self):
         """
@@ -82,13 +84,13 @@ class Step:
         if self.setup_dicts is not None:
             for setup_item in self.setup_dicts:
                 item_type = setup_item['type']
-                if item_type == "qubes-menu":
-                    self.setup_qubes_menu(setup_item)
+                if item_type == "qubes-menu-highlight":
+                    self.setup_qubes_menu_hightlight(setup_item)
                 else:
                     raise Exception("Setup of type '{}' not recognized.".format(
                         item_type))
 
-    def setup_qubes_menu(self, data: dict=None):
+    def setup_qubes_menu_hightlight(self, data: dict=None):
         logging.info("setting qubes menu")
         logging.info(data)
         vm_name = data.get("vm_name")
@@ -107,6 +109,29 @@ class Step:
             proxy = bus.get_object('org.qubes.tutorial.ui', '/')
             setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
             logging.info(setup_ui(self.ui_dict))
+
+    def teardown(self):
+        """
+        Tasks to run when the step is finished
+        """
+        logging.info("teardown step")
+        if self.teardown_dicts is not None:
+            for teardown_item in self.teardown_dicts:
+                item_type = teardown_item['type']
+                if item_type == "qubes-menu-remove-highlight":
+                    self.teardown_qubes_menu_hightlight(teardown_item)
+                else:
+                    raise Exception("Teardown of type '{}' not recognized."\
+                        .format(item_type))
+
+    def teardown_qubes_menu_hightlight(self, data: dict=None):
+        logging.info("teardown qubes menu")
+
+        # Sends a notification to the tutorial UI that it should update
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
+        remove_highlights = proxy.get_dbus_method('remove_highlights', 'org.qubes.tutorial.qubesmenu')
+        logging.info(remove_highlights())
 
     def get_name(self):
         return self.name
@@ -224,7 +249,8 @@ class Tutorial:
         for step_data in steps_data:
             step = Step(step_data['name'],
                         step_data.get('ui'),
-                        step_data.get('setup'))
+                        step_data.get('setup'),
+                        step_data.get('teardown'))
             self.add_step(step)
 
         self.add_step(Step('end'))
@@ -321,6 +347,7 @@ class Tutorial:
                 logging.debug("interaction does not transition")
                 continue
 
+            self.current_step.teardown()
             next_step = self.current_step.next(interaction)
             if next_step.is_last():
                 pass # FIXME do something
