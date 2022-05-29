@@ -1,10 +1,12 @@
 import logging
 import argparse
 import sys
+import os
 from queue import Queue
 import yaml
 import json
 from collections import OrderedDict
+import time
 
 import gi
 
@@ -14,6 +16,7 @@ from gi.repository import Gtk, GObject
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
 from qubes_tutorial.interactions import Interaction
+import qubes_tutorial.gui.ui as ui
 
 interactions = []
 
@@ -83,9 +86,16 @@ def init_gui():
 class Step:
     """ Represents a current step in a tutorial """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, ui_dict: dict=None, tutorial_base_dir=None):
         self.name = name
         self.transitions = OrderedDict() # map: interaction -> step
+        self.ui = StepUI(ui_dict, tutorial_base_dir)
+
+    def setup(self):
+        """
+        Initialize the step
+        """
+        self.ui.setup_ui()
 
     def get_name(self):
         return self.name
@@ -130,6 +140,35 @@ class Step:
 
         return dump
 
+class StepUI:
+    """
+    User interface to be displayed in a step
+    """
+    def __init__(self, ui_dict, tutorial_dir):
+        if ui_dict is None:
+            return
+        self.ui_dict = ui_dict
+        self.tutorial_dir = tutorial_dir
+
+    def setup_ui(self):
+        for ui_item_dict in self.ui_dict:
+            ui_type = ui_item_dict['type']
+
+            if ui_type == "modal":
+                self._setup_ui_modal(ui_item_dict)
+            elif ui_type == "step_information":
+                pass
+            else:
+                raise Exception("UI of type '{}' not recognized.".format(
+                    ui_type))
+
+    def _setup_ui_modal(self, ui_item_dict):
+        template = ui_item_dict['template']
+        template_path = os.path.join(self.tutorial_dir, template)
+        ui.setup_modal(template_path)
+        #main_button_label = ui_item['main_button_label']
+
+
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
 
@@ -140,6 +179,7 @@ class Tutorial:
     """
 
     def __init__(self):
+        self.tutorial_dir = None
         self.step_map = OrderedDict() # maps a step's name to a step object
 
     def check_integrity(self):
@@ -174,7 +214,7 @@ class Tutorial:
         # create all steps (nodes)
         steps = []
         for step_data in steps_data:
-            step = Step(step_data['name'])
+            step = Step(step_data['name'], step_data['ui'], self.tutorial_dir)
             self.add_step(step)
         self.add_step(Step('end'))
 
@@ -191,8 +231,10 @@ class Tutorial:
 
     def load_as_file(self, file_path):
         if file_path.endswith("yaml") or file_path.endswith("yml"):
+            self.tutorial_dir = os.path.dirname(file_path)
             self._load_as_file_yaml(file_path)
         elif file_path.endswith("md"):
+            self.tutorial_dir = os.path.dirname(file_path)
             self._load_as_file_literate_yaml(file_path)
         else:
             raise Exception("File not found: {}".format(file_path))
@@ -249,6 +291,7 @@ class Tutorial:
         step = self.get_first_step()
         while not step.is_last():
             logging.info('currently on step "{}"'.format(step.name))
+            step.setup()
             interaction = interactions_q.get(block=True)
 
             if not step.has_transition(interaction):
@@ -256,6 +299,7 @@ class Tutorial:
                 continue
 
             step = step.next(interaction)
+            time.sleep(1)
 
         watchers.stop_interaction_logger(self.get_scope())
 
