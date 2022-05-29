@@ -187,15 +187,16 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
     """
 
     __gtype_name__ = "CurrentTaskInfo"
-    ok_btn = Gtk.Template.Child()
-    exit_btn = Gtk.Template.Child()
+    button = Gtk.Template.Child()
     title = Gtk.Template.Child()
     text = Gtk.Template.Child()
 
     def __init__(self):
         super().__init__()
         self.set_keep_above(True)
+        self.set_decorated(False)
         self.hide() # starts hidden
+        self.button_is_exit = False
 
     def update(self, task_n, text, ok_callback, exit_callback):
         # becomes foreground when it is updated
@@ -204,7 +205,7 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
 
         self.move_to_center()
         self.show_all()
-        self.exit_btn.hide()
+        self.button.set_label("OK")
 
         self.ok_callback = ok_callback
         self.exit_callback = exit_callback
@@ -229,17 +230,13 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
     @Gtk.Template.Callback()
-    def on_ok_btn_pressed(self, button):
-        self.ok_btn.hide()
-        self.exit_btn.show()
-
-        self.move_to_corner()
-
-        self.ok_callback()
-
-    @Gtk.Template.Callback()
-    def on_exit(self, button):
-        self.exit_callback()
+    def on_btn_pressed(self, button):
+        if self.button_is_exit:
+            self.exit_callback()
+        else: # OK button
+            self.button.set_label("exit tutorial")
+            self.move_to_corner()
+            self.ok_callback()
 
 
 @Gtk.Template(filename=os.path.join(ui_dir, "step_information.ui"))
@@ -252,6 +249,7 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
     def __init__(self):
         super().__init__()
         self.set_keep_above(True)
+        self.set_decorated(False)
 
     def update(self, title, text, ok_button_pressed_callback=None):
         self.title.set_label(title)
