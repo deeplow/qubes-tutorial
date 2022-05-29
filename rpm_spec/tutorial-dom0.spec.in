@@ -43,7 +43,6 @@ make install-dom0 DESTDIR=$RPM_BUILD_ROOT
 %dir %{python3_sitelib}/qubes_tutorial-*.egg-info
 %{python3_sitelib}/qubes_tutorial-*.egg-info/*
 
-/usr/lib/qubes/tutorial/README.md
 %dir %{python3_sitelib}/qubes_tutorial
 %dir %{python3_sitelib}/qubes_tutorial/__pycache__
 %{python3_sitelib}/qubes_tutorial/__pycache__/*
@@ -69,11 +68,10 @@ make install-dom0 DESTDIR=$RPM_BUILD_ROOT
 %dir %{python3_sitelib}/qubes_tutorial/gui/images/
 %{python3_sitelib}/qubes_tutorial/gui/images/alpha_1px.png
 
-%dir %{_datadir}/qubes/tutorial/
-%dir %{_datadir}/qubes/tutorial/included_tutorials
-%{_datadir}/qubes/tutorial/included_tutorials/*
-
 %{_bindir}/qubes-tutorial
+
+/etc/qubes-rpc/tutorial.NextStep
+/etc/qubes/policy.d/80-tutorial.policy
 
 %changelog
 @CHANGELOG@

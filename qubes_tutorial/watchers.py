@@ -209,20 +209,24 @@ class QrexecWatcher(AbstractSysLogWatcher):
         logging.info(line)
         try:
             action = self.qrexec_re.search(line)
-            policy = action.group("policy")
-            source = action.group("source")
-            target = action.group("target")
+            untrusted_policy = action.group("policy")
+            untrusted_source = action.group("source")
+            untrusted_target = action.group("target")
             fail_reason = action.group("fail_reason")
         except:
             # ignore if pattern not matched
             return
 
-        if source in self.scope: # only consider in scope actions initiated by vm in scope
+        # FIXME sanitize untrusted args (if needed)
+
+        if untrusted_source in self.scope: # only consider in scope actions initiated by vm in scope
             if fail_reason:
                 # FIXME the target may be None. Instead replace by the intended target
-                logging.info("\n\tdecision: deny\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}".format(policy, source, target))
+                logging.info("\n\tdecision: deny\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}"\
+                    .format(untrusted_policy, untrusted_source, untrusted_target))
                 #yield QrexecPolicyInteraction(False, policy, source, target)
             else:
-                logging.info("\n\tdecision: allow\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}".format(policy, source, target))
+                logging.info("\n\tdecision: allow\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}"\
+                    .format(untrusted_policy, untrusted_source, untrusted_target))
                 #yield QrexecPolicyInteraction(True, policy, source, target)
-                interactions.register("qubes-qrexec-{}".format(policy), source, target)
+                interactions.register("qubes-qrexec-{}".format(untrusted_policy), untrusted_source, untrusted_target)

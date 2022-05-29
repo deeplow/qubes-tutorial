@@ -83,24 +83,37 @@ class Step:
         if self.setup_dicts is not None:
             for setup_item in self.setup_dicts:
                 item_type = setup_item['type']
-                if item_type == "qubes-menu-highlight":
+                if item_type == "qvm-run":
+                    self.setup_run_in_vm(setup_item)
+                elif item_type == "qubes-menu-highlight":
                     self.setup_qubes_menu_hightlight(setup_item)
                 else:
                     raise Exception("Setup of type '{}' not recognized.".format(
                         item_type))
+
+    def setup_run_in_vm(self, data: dict=None):
+        vm_name = data.get("vm_name")
+        command = data.get("command")
+        subprocess.Popen(["qvm-run", vm_name, command], stdin=subprocess.DEVNULL)
 
     def setup_qubes_menu_hightlight(self, data: dict=None):
         logging.info("setting qubes menu")
         logging.info(data)
         vm_name = data.get("vm_name")
         app_name = data.get("app_name")
+        override_exec = data.get("override_exec", "")
+
+        if type(override_exec) == list:
+            override_exec_str = " && ".join(override_exec)
+        else:
+            override_exec_str = override_exec
 
         # Sends a notification to the tutorial UI that it should update
         bus = dbus.SessionBus()
         proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
         show_path_to_app = proxy.get_dbus_method('show_path_to_app',
                                                  'org.qubes.tutorial.qubesmenu')
-        show_path_to_app(vm_name, app_name)
+        show_path_to_app(vm_name, app_name, override_exec_str)
 
     def setup_ui(self):
         if self.ui_dict:
@@ -307,6 +320,9 @@ class Tutorial:
         """
         logging.info("starting tutorial")
 
+        for vm in self.get_scope():
+            subprocess.Popen(["qvm-tags", vm, "add", "tutorial"])
+
         self.current_step = self.get_first_step()
         self.current_step.setup()
 
@@ -317,6 +333,9 @@ class Tutorial:
     def stop_loop(self):
         self.loop.close()
         watchers.stop_interaction_logger(self.get_scope())
+
+        for vm in self.get_scope():
+            subprocess.Popen(["qvm-tags", vm, "remove", "tutorial"])
 
     def glib_update(self, main_context, loop):
         while main_context.pending():

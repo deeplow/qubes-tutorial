@@ -1,0 +1,3 @@
+#!/bin/sh
+# this does not need to do anything since the simple fact that
+# this qrexec services was called is detected by the tutorial

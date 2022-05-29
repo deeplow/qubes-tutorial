@@ -1,3 +1,0 @@
-[submodule "qubes_tutorial/included_tutorials/onboarding-tutorial-1"]
-	path = qubes_tutorial/included_tutorials/onboarding-tutorial-1
-	url = git@github.com:deeplow/onboarding-tutorial-1.git
