@@ -11,10 +11,11 @@ modal_path = os.path.join(modal_dir_path, "modal.ui")
 class ModalWindow(Gtk.Window):
     __gtype_name__ = "ModalWindow"
     modal_placeholder = Gtk.Template.Child()
+    title_label = Gtk.Template.Child()
     next_button = Gtk.Template.Child()
     back_button = Gtk.Template.Child()
 
-    def __init__(self, step_ui_path, next_button_label, back_button_label=None):
+    def __init__(self, step_ui_path, title, next_button_label, back_button_label=None):
         super().__init__()
 
         custom_information = Gtk.Builder()
@@ -22,8 +23,11 @@ class ModalWindow(Gtk.Window):
         custom_modal = custom_information.get_object("custom_modal")
         self.modal_placeholder.pack_start(custom_modal, True, True, 0)
 
+        self.title_label.set_label(title)
+
         if back_button_label is None:
             self.back_button.set_label("") # FIXME make invisible
         else:
             self.back_button.set_label("<u>{}</u>".format(back_button_label))
+
         self.next_button.set_label(next_button_label)

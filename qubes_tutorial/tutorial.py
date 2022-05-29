@@ -165,10 +165,10 @@ class StepUI:
     def _setup_ui_modal(self, ui_item_dict):
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)
+        title = ui_item_dict.get('title')
         next_button_label = ui_item_dict.get('next_button')
         back_button_label = ui_item_dict.get('back_button')
-
-        ui.setup_modal(template_path, next_button_label, back_button_label)
+        ui.setup_modal(template_path, title, next_button_label, back_button_label)
 
 
 class Tutorial:
