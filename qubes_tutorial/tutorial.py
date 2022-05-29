@@ -141,9 +141,14 @@ class Tutorial:
             self.create_mode = True
             self.step_map = OrderedDict() # maps a step's name to a step object
         else:
-            self.load_as_file(infile)
+            self._load_as_file_literate_yaml(infile)
 
-    def load_as_text(self, steps_data):
+    def load_as_yaml(self, yaml_text):
+        """
+        Loads tutorial data from a list of steps
+        """
+        steps_data = yaml.safe_load(yaml_text)
+
         # create all steps (nodes)
         steps = []
         for step_data in steps_data:
@@ -159,12 +164,25 @@ class Tutorial:
                 interaction_type = transition['interaction_type']
                 interaction = Interaction(interaction_type)
 
-    def load_as_file(self, infile):
-        """load tutorial from a literate markdown-yaml file"""
+    def load_as_file(self, file_path):
+        if file_path.endswith("yaml") or file_path.endswith("yml"):
+            self._load_as_file_yaml(file_path)
+        elif file_path.endswith("yaml"):
+            self._load_as_file_literate_yaml(file_path)
+        else:
+            raise Exception("File not found: {}".format(file_path))
 
+    def _load_as_file_yaml(self, file_path):
+        with open(file_path, 'r') as f:
+            return f.read()
+
+    def _load_as_file_literate_yaml(self, file_path):
+        """
+        Load tutorial from a literate markdown-yaml file
+        """
         md_text = ""
         yaml_text = ""
-        with open(infile, 'r') as f:
+        with open(file_path, 'r') as f:
             md_text = f.readlines()
 
         # extract YAML blocks from Markdown
@@ -178,8 +196,7 @@ class Tutorial:
                 else:
                     yaml_text += md_line
 
-        steps_data = yaml.safe_load(yaml_text)
-        self.load_as_text(steps_data)
+        self.load_as_yaml(yaml_text)
 
     def save_as_text(self):
         tutorial = {
@@ -271,7 +288,7 @@ class TutorialApp(Gtk.Application):
 
 if __name__ == "__main__":
     t = Tutorial()
-    t.load_as_file("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
+    t._load_as_file_literate_yaml("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
     t.start_tutorial()
     #main()
     #app = TutorialApp()

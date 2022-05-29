@@ -191,3 +191,38 @@ steps:
 
         self.assertEqual(tut.save_as_text(), result)
 
+
+class TestTutorialDeserialization(unittest.TestCase):
+
+    def setUp(self):
+        self.tut = tutorial.Tutorial()
+
+    @property
+    def test_name(self):
+        method_full_name = self.id()
+        return re.match(".*(test_.*)", method_full_name).group(1)
+
+    def get_test_data_path(self, test_name, extension):
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        return os.path.join(cwd, "test_tutorial_data",
+                            "{}.{}".format(test_name, extension))
+
+    def load_test_data(self, test_name, extension):
+        """
+        Loads test data from file located in:
+          - test_tutorial_data/[test_XXX_name].md or .yaml
+        """
+        test_data_path = self.get_test_data_path(test_name, extension)
+        if os.path.exists(test_data_path):
+            with open(test_data_path, 'r') as f:
+                return f.read()
+        raise Exception("Could not find file test data file at \"{}\""\
+                            .format(test_data_path))
+
+    def test_001_load_from_yaml_simple(self):
+        test_data = self.load_test_data(self.test_name, "yaml")
+        self.tut.load_as_yaml(test_data)
+
+    def test_002_load_from_yaml_simple_file(self):
+        test_data_path = self.get_test_data_path(self.test_name, "yaml")
+        self.tut.load_as_file(test_data_path)
