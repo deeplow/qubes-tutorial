@@ -11,7 +11,6 @@ class StepIndicator(Gtk.Window):
     def __init__(self, text, x, y):
         Gtk.Window.__init__(self)
         self.set_border_width(10)
-        self.set_default_size(400, 200)
 
         self._set_style()
 
@@ -27,21 +26,25 @@ class StepIndicator(Gtk.Window):
 
         self._create_dummy_boxes()
         self._create_popover(text)
-        self._position_on_screen(x, y)
 
         self.show_all()
+
+        # Functions that require widget to be already rendered
+        self._position_on_screen(x, y)
         self._make_clickthrough()
 
     def _position_on_screen(self, x, y):
-        """ Positions popover arrow over specified point """
+        """ Positions popover arrow over specified point on the screen
 
+        Only works after widget.show_all()
+        """
+        window = self.get_window()
+        window.fullscreen()
+
+        # select the corner to which the popover is pointing
         primary_monitor = self.get_screen().get_display().get_primary_monitor()
         height = primary_monitor.get_geometry().height
         width  = primary_monitor.get_geometry().width
-
-        # TODO fit window's size to popover's dimentions
-
-        # select the corner to which the popover is pointing
         shifted_x = x - width  / 2
         shifted_y = y - height / 2
         target = None
