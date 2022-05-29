@@ -49,6 +49,11 @@ class TutorialUI(dbus.service.Object):
 
     def setup_widgets(self):
         self.modal = ui.ModalWindow()
+        self.step_info = ui.StepInformation()
+        self.widgets = [
+            self.modal,
+            self.step_info
+        ]
         #self.tutorial_info = self.builder.get_object("TutorialInformation")
         #self.tutorial_info_ok_btn = self.builder.get_object('tutorial_info_ok_btn')
         #self.tutorial_modal.show_all()
@@ -87,12 +92,15 @@ class TutorialUI(dbus.service.Object):
         logging.info("processing some UI change")
         logging.info(ui_dict)
 
+        for widget in self.widgets:
+            widget.hide()
+
         for ui_item_dict in ui_dict:
             ui_type = ui_item_dict['type']
             if ui_type == "modal":
                 self.setup_ui_modal(ui_item_dict)
             elif ui_type == "step_information":
-                #self._setup_ui_step_information(ui_item_dict, interactions_q)
+                self.setup_ui_step_information(ui_item_dict)
                 pass
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
@@ -120,19 +128,14 @@ class TutorialUI(dbus.service.Object):
                           back_button_label, on_back_button_pressed)
         self.modal.show_all()
 
-    def _setup_ui_step_information(self, ui_item_dict, interactions_q):
-        # FIXME Reimplement
-        pass
-
-        """
+    def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
-            interactions_q.put(Interaction("click OK"))
+            self.send_interaction("click OK")
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
-        ui.setup_step_information(title, text, on_ok_button_pressed)
-        """
-
+        self.step_info.update(title, text, on_ok_button_pressed)
+        self.step_info.show_all()
 
 def main():
     log_fmt = "%(module)s: %(message)s"

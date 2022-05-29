@@ -3,22 +3,30 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-def setup_step_information(title, text, callback):
-    dialog = Gtk.MessageDialog(
-        flags=0,
-        message_type=Gtk.MessageType.INFO,
-        buttons=Gtk.ButtonsType.OK,
-        text=title,
-    )
-    dialog.format_secondary_text(text)
-    dialog.run()
-    dialog.destroy()
-    callback()
+ui_dir = os.path.dirname(os.path.realpath(__file__))
 
-modal_dir_path = os.path.dirname(os.path.realpath(__file__))
-modal_path = os.path.join(modal_dir_path, "modal.ui")
+@Gtk.Template(filename=os.path.join(ui_dir, "step_information.ui"))
+class StepInformation(Gtk.Dialog):
+    __gtype_name__ = "StepInformation"
+    ok_btn = Gtk.Template.Child()
+    title = Gtk.Template.Child()
+    text = Gtk.Template.Child()
 
-@Gtk.Template(filename=modal_path)
+    def __init__(self):
+        super().__init__()
+
+    def update(self, title, text, ok_button_pressed_callback):
+        self.ok_button_pressed_callback = ok_button_pressed_callback
+        print(self.title)
+        print(self.text)
+        self.title.set_label(title)
+        self.text.set_label(text)
+
+    @Gtk.Template.Callback()
+    def on_ok_btn_pressed(self, button):
+        self.ok_button_pressed_callback()
+
+@Gtk.Template(filename=os.path.join(ui_dir, "modal.ui"))
 class ModalWindow(Gtk.Window):
     __gtype_name__ = "ModalWindow"
     modal_placeholder = Gtk.Template.Child()
