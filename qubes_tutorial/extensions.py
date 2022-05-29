@@ -20,7 +20,7 @@ def if_tutorial_enabled(func):
             return func(*args, **kwargs)
     return decorator
 
-def tutorial_register_decorator(interaction_name):
+def register(interaction_name):
     """
     If the tutorial mode is enabled, it informs the tutorial of these calls
     """
