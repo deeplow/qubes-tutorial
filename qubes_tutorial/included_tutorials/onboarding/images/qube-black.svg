@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="21px" height="23px" viewBox="0 0 21 23" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>qube-blak</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M19.7880974,4.90247382 L11.5982867,0.313287592 C11.2479711,0.120926493 10.8503156,0.0110058646 10.4431921,0.00184581225 C9.98872858,-0.0164742925 9.55320108,0.102606388 9.16501353,0.313287592 L0.975202885,4.90247382 C0.501803427,5.15895529 0.208295762,5.5803177 0,6.04748037 L7.51758341,10.2519444 C8.89044184,11.0213888 9.73309288,12.4228768 9.73309288,13.9526056 L9.73309288,22.8836566 C10.3485122,23.0576976 11.0112714,23.0576976 11.5982867,22.7370958 L19.7880974,18.1479095 C20.5360685,17.7265471 21,16.9479427 21,16.123538 L21,6.93600545 C21,6.09328063 20.5360685,5.32383623 19.7880974,4.90247382 Z" id="path-1"></path>
+        <filter x="-2.4%" y="-2.2%" width="109.5%" height="104.3%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="1" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 1 0" type="matrix" in="shadowOffsetOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="qube-blak" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group">
+            <g id="Fill-1">
+                <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                <use fill="#585858" fill-rule="evenodd" xlink:href="#path-1"></use>
+            </g>
+            <path d="M0,16.1741023 C0,17.015778 0.465337132,17.8019587 1.21557455,18.2274211 L9.43019943,22.8612622 C9.61063628,22.9537541 9.8005698,22.9537541 10,23 L10,13.9912949 C10,12.4466812 9.15479582,11.0223069 7.77777778,10.2453754 L0.237416904,6 C0.12345679,6.29597388 0,6.58269859 0,6.89717084 L0,16.1741023 Z" id="Fill-3" fill="#000000"></path>
+        </g>
+    </g>
+</svg>

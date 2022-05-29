@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkBox" id="custom_modal">
+    <property name="width-request">500</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="halign">center</property>
+    <property name="margin-top">34</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkImage">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="pixbuf">images/emojione_creative_commons.png</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="width-request">300</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">You know your way around Qubes!</property>
+        <property name="justify">center</property>
+        <property name="wrap">True</property>
+        <property name="width-chars">0</property>
+        <property name="max-width-chars">40</property>
+        <attributes>
+          <attribute name="scale" value="1.3"/>
+        </attributes>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="width-request">300</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">Exit to explore Qubes on your own
+or do some more tutorials</property>
+        <property name="use-markup">True</property>
+        <property name="justify">center</property>
+        <property name="wrap">True</property>
+        <property name="width-chars">0</property>
+        <property name="max-width-chars">40</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="padding">26</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">TODO: give image credit</property>
+        <property name="wrap">True</property>
+        <property name="max-width-chars">40</property>
+        <attributes>
+          <attribute name="foreground" value="#9a9a99999696"/>
+        </attributes>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="padding">22</property>
+        <property name="position">3</property>
+      </packing>
+    </child>
+  </object>
+</interface>
