@@ -33,20 +33,19 @@ def get_window_title(winid):
     dpy = Xlib.display.Display()
     win = dpy.create_resource_object('window', winid_int)
     atom_id = dpy.intern_atom('WM_NAME')
-    title = "<unnamed window>"
 
     # Not well documented process. Solved with the help of
     # https://stackoverflow.com/questions/9465651/how-can-i-read-an-x-property-using-python-xlib
     window_prop = win.get_full_property(atom_id, property_type=0)
     if window_prop:
-        win_name = window_prop.value  # type: Union[str, bytes]
-        if isinstance(win_name, bytes):
+        untrusted_win_name = window_prop.value  # type: Union[str, bytes]
+        if isinstance(untrusted_win_name, bytes):
             # Apparently COMPOUND_TEXT is so arcane that this is how
             # tools like xprop deal with receiving it these days
-            win_name = win_name.decode('latin1', 'replace')
-        return win_name
+            untrusted_win_name = untrusted_win_name.decode('latin1', 'replace')
+        return untrusted_win_name
 
-    return title
+    return "<unnamed window>"
 
 def enable_vm_debug(vm):
     """ enables debug mode for VM """
@@ -67,9 +66,6 @@ def disable_vm_debug(vm):
         logging.debug("disabled debug mode for qube {}".format(vm))
     except subprocess.CalledProcessError:
         logging.error("failed to disable debug mode for qube {}".format(vm))
-
-
-
 
 def window_viewable(winid):
     """ Checks if an windows is viewable """
