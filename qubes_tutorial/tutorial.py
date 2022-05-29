@@ -63,6 +63,10 @@ def create_tutorial(outfile, scope, interactions_q):
     except KeyboardInterrupt:
         utils.gen_report(interactions_q)
 
+def get_ui_proxy_method(method_name):
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
+        return proxy.get_dbus_method(method_name, 'org.qubes.tutorial.ui')
 
 class Step:
     """ Represents a current step in a tutorial """
@@ -105,9 +109,7 @@ class Step:
         """
         Sends a notification to the tutorial UI that it should update
         """
-        bus = dbus.SessionBus()
-        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
-        setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
+        setup_ui = get_ui_proxy_method('setup_ui')
         if self.ui_dict:
             logging.info(setup_ui(self.ui_dict))
         else:
@@ -117,9 +119,7 @@ class Step:
             logging.info(setup_ui(empty_ui_dict))
 
     def teardown_ui(self):
-        bus = dbus.SessionBus()
-        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
-        teardown_ui = proxy.get_dbus_method('teardown_ui', 'org.qubes.tutorial.ui')
+        teardown_ui = get_ui_proxy_method('teardown_ui')
         logging.info(teardown_ui())
 
     def teardown(self):
