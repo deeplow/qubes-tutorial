@@ -94,6 +94,7 @@
           <object class="GtkStack" id="stack">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="valign">center</property>
             <child>
               <object class="GtkBox" id="modal_placeholder">
                 <property name="can-focus">False</property>
