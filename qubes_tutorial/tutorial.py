@@ -67,15 +67,40 @@ def create_tutorial(outfile, scope, interactions_q):
 class Step:
     """ Represents a current step in a tutorial """
 
-    def __init__(self, name: str, ui_dict: dict=None):
+    def __init__(self, name: str, ui_dict: dict=None, setup_dicts: dict=None):
         self.name = name
         self.transitions = OrderedDict() # map: interaction -> step
         self.ui_dict = ui_dict
+        self.setup_dicts = setup_dicts
 
     def setup(self):
         """
         Initialize the step
         """
+        self.setup_ui()
+
+        if self.setup_dicts is not None:
+            for setup_item in self.setup_dicts:
+                item_type = setup_item['type']
+                if item_type == "qubes-menu":
+                    self.setup_qubes_menu(setup_item)
+                else:
+                    raise Exception("Setup of type '{}' not recognized.".format(
+                        item_type))
+
+    def setup_qubes_menu(self, data: dict=None):
+        logging.info("setting qubes menu")
+        logging.info(data)
+        vm_name = data.get("vm_name")
+        app_name = data.get("app_name")
+
+        # Sends a notification to the tutorial UI that it should update
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
+        show_path_to_app = proxy.get_dbus_method('show_path_to_app', 'org.qubes.tutorial.qubesmenu')
+        logging.info(show_path_to_app(vm_name, app_name))
+
+    def setup_ui(self):
         if self.ui_dict:
             # Sends a notification to the tutorial UI that it should update
             bus = dbus.SessionBus()
@@ -197,8 +222,11 @@ class Tutorial:
         # create all steps (nodes)
         steps = []
         for step_data in steps_data:
-            step = Step(step_data['name'], step_data.get('ui'))
+            step = Step(step_data['name'],
+                        step_data.get('ui'),
+                        step_data.get('setup'))
             self.add_step(step)
+
         self.add_step(Step('end'))
 
         # add all transitions (edges)
