@@ -47,18 +47,13 @@ class StepIndicator(Gtk.Window):
         target = None
 
         if shifted_x >= 0:
-
-
             if shifted_y <= 0:  # 1st quadrant
                 target = self.dummy_top_right
-
             else:               # 4th quadrant
                 target = self.dummy_bottom_right
-
         else:
             if shifted_y <= 0:  # 2nd quadrant
                 target = self.dummy_top_left
-
             else:               # 3rd quadrant
                 target = self.dummy_bottom_left
 
