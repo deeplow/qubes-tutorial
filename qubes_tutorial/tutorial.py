@@ -5,6 +5,11 @@ from queue import Queue
 import yaml
 from collections import OrderedDict
 
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GObject
+
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
 from qubes_tutorial.interactions import Interaction
@@ -35,7 +40,7 @@ def main():
         scope = [x.strip() for x in args.scope.split(",")]
 
     interactions_q = Queue()
-    watchers.init_watchers(scope, interactions_q)
+    watchers.init_watchers(scope)
 
     if args.create:
         create_tutorial(args.create, scope, interactions_q)
@@ -43,7 +48,7 @@ def main():
         tutorial = Tutorial("tutorial.tut") # FIXME remove hardcoded
         start_tutorial(tutorial, interactions_q)
 
-    watchers.stop_watchers(scope)
+    watchers.stop_interaction_logger(scope)
 
 
 def start_tutorial(tutorial, interactions_q):
@@ -68,7 +73,7 @@ def create_tutorial(outfile, scope, interactions_q):
     tutorial = Tutorial()
 
     try:
-        watchers.init_watchers(scope, interactions_q)
+        watchers.start_interaction_logger(scope, interactions_q)
         # TODO global logs monitoring
 
         input("Press ctrl+c to stop")
@@ -219,5 +224,20 @@ class TutorialDuplicateTransitionException(TutorialException):
             format(source_step.name, target_step.name)
         super().__init__(message)
 
+class TutorialApp(Gtk.Application):
+
+    def __init__(self):
+        super().__init__()
+        self.set_application_id("org.qubes.qui.Tutorial")
+        print("ran this")
+
+    def do_activate(self):
+        print("do activate")
+
+
 if __name__ == "__main__":
-    main()
+    #main()
+    app = TutorialApp()
+    app.run()
+
+    print("ran after")
