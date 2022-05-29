@@ -76,12 +76,12 @@ class Step:
         """
         Initialize the step
         """
-
-        # Sends a notification to the tutorial UI that it should update
-        bus = dbus.SessionBus()
-        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
-        setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
-        logging.info(setup_ui(self.ui_dict))
+        if self.ui_dict:
+            # Sends a notification to the tutorial UI that it should update
+            bus = dbus.SessionBus()
+            proxy = bus.get_object('org.qubes.tutorial.ui', '/')
+            setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
+            logging.info(setup_ui(self.ui_dict))
 
     def get_name(self):
         return self.name
@@ -197,7 +197,7 @@ class Tutorial:
         # create all steps (nodes)
         steps = []
         for step_data in steps_data:
-            step = Step(step_data['name'], step_data['ui'])
+            step = Step(step_data['name'], step_data.get('ui'))
             self.add_step(step)
         self.add_step(Step('end'))
 
