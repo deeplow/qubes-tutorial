@@ -1,4 +1,4 @@
-import utils
+import qubes_tutorial.utils
 
 class Interaction:
     """ Defines an iteraction """

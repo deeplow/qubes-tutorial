@@ -3,9 +3,9 @@ import argparse
 import sys
 from queue import Queue
 
-import utils
-import watchers
-from interactions import Interaction
+import qubes_tutorial.utils as utils
+import qubes_tutorial.watchers as watchers
+from qubes_tutorial.interactions import Interaction
 
 interactions = []
 
@@ -89,8 +89,7 @@ class TutorialStep:
     def is_last(self):
         return self.name == "end"
 
-    def add_transition(self, interaction: Interaction,
-                             target_step: TutorialStep):
+    def add_transition(self, interaction, target_step):
         interactions = self.transitions.get(target_step)
         if interactions == None:
             self.transitions[target_step] = [interaction]
@@ -119,15 +118,11 @@ class Tutorial:
     def __init__(self, infile=None):
         if not infile:
             self.create_mode = True
-            self.add_first_step()
 
     def _load(self, infile):
         # FIXME remove hardcoded
 
         # First create all Nodes, only then edges
-        pass
-
-    def add_first_step(self) -> None:
         pass
 
     def get_first_step(self) -> None:
