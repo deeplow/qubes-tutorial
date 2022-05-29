@@ -3,18 +3,22 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-modal_builder = Gtk.Builder()
-modal_builder.add_from_file("modal.ui")
+@Gtk.Template(filename="modal.ui")
+class ModalWindow(Gtk.Window):
+    __gtype_name__ = "ModalWindow"
+    modal_placeholder = Gtk.Template.Child()
 
-window = modal_builder.get_object("modal_window")
+    def __init__(self, step_ui_path):
+        super().__init__()
 
-custom_information = Gtk.Builder()
-custom_information.add_from_file('../included_tutorials/onboarding/step_1.ui')
-custom_modal = custom_information.get_object("custom_modal")
+        custom_information = Gtk.Builder()
+        custom_information.add_from_file('../' + step_ui_path)
+        custom_modal = custom_information.get_object("custom_modal")
 
-placeholder = modal_builder.get_object("modal_placeholder")
-placeholder.pack_start(custom_modal, True, True, 0)
+        self.modal_placeholder.pack_start(custom_modal, True, True, 0)
 
+
+window = ModalWindow('included_tutorials/onboarding/step_1.ui')
 window.show_all()
 
 Gtk.main()
