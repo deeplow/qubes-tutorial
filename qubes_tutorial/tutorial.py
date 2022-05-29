@@ -3,6 +3,7 @@ import argparse
 import sys
 from queue import Queue
 import yaml
+import json
 from collections import OrderedDict
 
 import gi
@@ -95,6 +96,9 @@ class Step:
     def get_name(self):
         return self.name
 
+    def is_first(self):
+        return self.name == "start"
+
     def is_last(self):
         return self.name == "end"
 
@@ -139,14 +143,43 @@ class Tutorial:
         else:
             self.load_as_file(infile)
 
-    def load_as_text(self, infile):
-        # two-pass approach:
-        #   1. load and create all steps (nodes)
-        #   2. add all transitions (edges)
-        pass # FIXME not implemented
+    def load_as_text(self, steps_data):
+        # create all steps (nodes)
+        steps = []
+        for step_data in steps_data:
+            step = Step(step_data['name'])
+            self.add_step(step)
+        self.add_step(Step('end'))
+
+        # add all transitions (edges)
+        for step_data in steps_data:
+            step = self.get_step(step_data['name'])
+            for transition in step_data['transitions']:
+                next_step = self.get_step(transition['step'])
+                interaction_type = transition['interaction_type']
+                interaction = Interaction(interaction_type)
 
     def load_as_file(self, infile):
-        pass # FIXME not implmented
+        """load tutorial from a literate markdown-yaml file"""
+
+        md_text = ""
+        yaml_text = ""
+        with open(infile, 'r') as f:
+            md_text = f.readlines()
+
+        # extract YAML blocks from Markdown
+        in_yaml_block = False
+        for md_line in md_text:
+            if "```yaml" in md_line:
+                in_yaml_block = True
+            elif in_yaml_block:
+                if md_line == "```\n":
+                    in_yaml_block = False
+                else:
+                    yaml_text += md_line
+
+        steps_data = yaml.safe_load(yaml_text)
+        self.load_as_text(steps_data)
 
     def save_as_text(self):
         tutorial = {
@@ -235,9 +268,11 @@ class TutorialApp(Gtk.Application):
         print("do activate")
 
 
-if __name__ == "__main__":
-    #main()
-    app = TutorialApp()
-    app.run()
 
-    print("ran after")
+if __name__ == "__main__":
+    t = Tutorial()
+    t.load_as_file("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
+    t.start_tutorial()
+    #main()
+    #app = TutorialApp()
+    #app.run()
