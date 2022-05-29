@@ -56,11 +56,11 @@ def start_tutorial(tutorial, interactions_q):
         logging.info('currently on step "{}"'.format(step.name))
         interaction = interactions_q.get(block=True)
 
-        if step.transition(interaction) == None:
+        if not step.has_transition(interaction):
             logging.debug("interaction does not transition")
             continue
 
-        step = tutorial.get_next(step, interaction)
+        step = step.next(interaction)
 
 def create_tutorial(outfile, scope, interactions_q):
     logging.info("creating tutorial")
