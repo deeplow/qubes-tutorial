@@ -1,5 +1,4 @@
 import logging
-import argparse
 import sys
 import os
 from queue import Queue
@@ -7,10 +6,8 @@ import yaml
 import json
 from collections import OrderedDict
 import time
-import threading
 
 import gi
-
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject
 
@@ -20,42 +17,6 @@ from qubes_tutorial.interactions import Interaction
 import qubes_tutorial.gui.ui as ui
 
 interactions = []
-
-def main():
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s %(message)s')
-
-    parser = argparse.ArgumentParser(
-            description='Integrated tutorials tool for Qubes OS')
-
-    action_group = parser.add_mutually_exclusive_group(required=True)
-    action_group.add_argument('--create', '-c',
-                        type=argparse.FileType('w', encoding='UTF-8'),
-                        metavar="FILE",
-                        help='Create a tutorial')
-
-    action_group.add_argument('--load', '-l',
-                        type=str,
-                        metavar="FILE",
-                        help='Load a tutorial from a .yaml or literate .md.'\
-                            + "\nFor example 'qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md'")
-
-    parser.add_argument('--scope', '-s',
-                        type=str,
-                        help='qubes affected (e.g. --scope=personal,work)')
-
-    args = parser.parse_args()
-
-    scope = list()
-    if args.scope:
-        scope = [x.strip() for x in args.scope.split(",")]
-
-    if args.create:
-        create_tutorial(args.create, scope)
-    elif args.load:
-        app = TutorialApp(tutorial_path=args.load)
-        app.run()
 
 def create_tutorial(outfile, scope):
     interactions_q = Queue()
@@ -429,23 +390,3 @@ class TutorialDuplicateTransitionException(TutorialException):
         message = "Step '{}' already has a transition to step '{}'".\
             format(source_step.name, target_step.name)
         super().__init__(message)
-
-class TutorialApp(Gtk.Application):
-
-    def __init__(self, tutorial_path, tutorial=None):
-        super().__init__()
-        self.set_application_id("org.qubes.qui.Tutorial")
-
-        self.tutorial = Tutorial(ui_callback=self.do_interaction)
-        self.tutorial.load_as_file(tutorial_path)
-
-    def do_interaction(self, arg):
-        print("method handler for `interaction' called with argument", arg)
-
-    def do_activate(self):
-        print("do activate")
-        threading.Thread(target=self.tutorial.start).start()
-
-
-if __name__ == "__main__":
-    main()
