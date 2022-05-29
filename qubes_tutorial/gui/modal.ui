@@ -72,9 +72,9 @@
                 <property name="can-focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkButton" id="back_button">
+                  <object class="GtkButton" id="back_button2">
                     <property name="label" translatable="yes">«</property>
-                    <property name="name">back_button</property>
+                    <property name="name">back_button2</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="receives-default">True</property>
@@ -128,7 +128,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="back_button">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="xpad">77</property>
