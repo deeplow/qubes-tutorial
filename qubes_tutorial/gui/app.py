@@ -174,7 +174,7 @@ class TutorialUIInterface:
         pass
 
 @Gtk.Template(filename=os.path.join(ui_dir, "current_task.ui"))
-class CurrentTaskInfo(Gtk.Dialog, TutorialUIInterface):
+class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
     """Current Task Information
 
     Shows the user information of the current task they're performing.
@@ -241,7 +241,7 @@ class CurrentTaskInfo(Gtk.Dialog, TutorialUIInterface):
 
 
 @Gtk.Template(filename=os.path.join(ui_dir, "step_information.ui"))
-class StepInformation(Gtk.Dialog, TutorialUIInterface):
+class StepInformation(Gtk.Window, TutorialUIInterface):
     __gtype_name__ = "StepInformation"
     ok_btn = Gtk.Template.Child()
     title = Gtk.Template.Child()
