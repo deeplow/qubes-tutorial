@@ -15,7 +15,7 @@ import qubes_tutorial.interactions as interactions
 
 ui_dir = os.path.dirname(os.path.realpath(__file__))
 
-class TutorialUI(dbus.service.Object):
+class TutorialUIDbusService(dbus.service.Object):
 
     def __init__(self, tutorial_dir):
         self.tutorial_dir = tutorial_dir
@@ -288,7 +288,7 @@ def main():
 
     args = parser.parse_args()
 
-    a = TutorialUI(args.dir)
+    a = TutorialUIDbusService(args.dir)
     logging.info("waiting for interactions...")
 
 if __name__ == "__main__":
