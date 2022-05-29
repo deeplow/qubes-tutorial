@@ -9,6 +9,10 @@ from gi.repository import Gtk, Gdk
 
 import qubes_tutorial.interactions as interactions
 
+
+EXT_INTERFACE_NAME = "org.qubes.tutorial.extensions"
+EXT_OBJ_PATH = "/"
+
 tutorial_enabled = False
 
 def if_tutorial_enabled(func):
@@ -37,13 +41,19 @@ def tutorial_register(name: str, subject: str="", arguments: str=""):
         interactions.register(name, subject, arguments)
 
 def get_extension_method(component, method_name):
-    bus_name       = TutorialExtension.get_bus_name_from_component_name(component)
-    interface_name = TutorialExtension.get_interface_name()
-    object_path    = TutorialExtension.get_object_path()
+    """
+    Obtains a proxy method for calling a tutorial command in the component
+    """
+    bus_name       = _get_bus_name_from_component_name(component)
+    interface_name = EXT_INTERFACE_NAME
+    object_path    = EXT_OBJ_PATH
     proxy = dbus.SessionBus()\
                 .get_object(bus_name, object_path)\
                 .get_dbus_method(method_name, interface_name)
     return proxy
+
+def _get_bus_name_from_component_name(component_name):
+    return f"{EXT_INTERFACE_NAME}.{component_name}"
 
 
 class TutorialExtension(dbus.service.Object):
@@ -55,21 +65,6 @@ class TutorialExtension(dbus.service.Object):
       the tutorial.
     """
 
-    __bus_name__    = "org.qubes.tutorial.extensions"
-    __object_path__ = "/"
-
-    @classmethod
-    def get_bus_name_from_component_name(cls, component_name):
-        return f"{cls.__bus_name__}.{component_name}"
-
-    @classmethod
-    def get_interface_name(cls):
-        return cls.__bus_name__
-
-    @classmethod
-    def get_object_path(cls):
-        return cls.__object_path__
-
     @classmethod
     def make_do_methods_dbus_services(cls):
         """
@@ -78,7 +73,7 @@ class TutorialExtension(dbus.service.Object):
         for name, member in inspect.getmembers(cls):
             if (inspect.ismethod(member) or inspect.isfunction(member))\
                 and name.startswith('do_'):
-                setattr(cls, name, dbus.service.method(cls.__bus_name__)(member))
+                setattr(cls, name, dbus.service.method(EXT_INTERFACE_NAME)(member))
         return cls
 
     def __init__(self, component_name):
@@ -89,9 +84,9 @@ class TutorialExtension(dbus.service.Object):
         DBusGMainLoop(set_as_default=True)
         self.make_do_methods_dbus_services()
 
-        bus_name = self.get_bus_name_from_component_name(component_name)
+        bus_name = _get_bus_name_from_component_name(component_name)
         bus = dbus.service.BusName(bus_name, bus=dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus, self.get_object_path())
+        dbus.service.Object.__init__(self, bus, EXT_OBJ_PATH)
 
 
 class GtkTutorialExtension(TutorialExtension):
