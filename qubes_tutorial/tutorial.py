@@ -89,13 +89,17 @@ class Step:
     def __init__(self, name: str, ui_dict: dict=None, tutorial_base_dir=None):
         self.name = name
         self.transitions = OrderedDict() # map: interaction -> step
-        self.ui = StepUI(ui_dict, tutorial_base_dir)
+        if ui_dict:
+            self.ui = StepUI(ui_dict, tutorial_base_dir)
+        else:
+            self.ui = None
 
-    def setup(self):
+    def setup(self, interactions_q):
         """
         Initialize the step
         """
-        self.ui.setup_ui()
+        if self.ui:
+            self.ui.setup_ui(interactions_q)
 
     def get_name(self):
         return self.name
@@ -150,25 +154,35 @@ class StepUI:
         self.ui_dict = ui_dict
         self.tutorial_dir = tutorial_dir
 
-    def setup_ui(self):
+    def setup_ui(self, interactions_q):
         for ui_item_dict in self.ui_dict:
             ui_type = ui_item_dict['type']
 
             if ui_type == "modal":
-                self._setup_ui_modal(ui_item_dict)
+                self._setup_ui_modal(ui_item_dict, interactions_q)
             elif ui_type == "step_information":
                 pass
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
 
-    def _setup_ui_modal(self, ui_item_dict):
+    def _setup_ui_modal(self, ui_item_dict, interactions_q):
+
+        def on_next_button_pressed():
+            interactions_q.put(Interaction("click main button"))
+
+        def on_back_button_pressed():
+            interactions_q.put(Interaction("click secondary button"))
+
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)
         title = ui_item_dict.get('title')
         next_button_label = ui_item_dict.get('next_button')
         back_button_label = ui_item_dict.get('back_button')
-        ui.setup_modal(template_path, title, next_button_label, back_button_label)
+        ui.setup_modal(template_path, title,
+                       next_button_label, on_next_button_pressed,
+                       back_button_label, on_back_button_pressed)
+
 
 
 class Tutorial:
@@ -293,7 +307,7 @@ class Tutorial:
         step = self.get_first_step()
         while not step.is_last():
             logging.info('currently on step "{}"'.format(step.name))
-            step.setup()
+            step.setup(interactions_q)
             interaction = interactions_q.get(block=True)
 
             if not step.has_transition(interaction):

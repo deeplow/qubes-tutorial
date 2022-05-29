@@ -128,20 +128,20 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkLabel" id="back_button">
+              <object class="GtkButton" id="back_button">
+                <property name="label" translatable="yes">Learn the Basics »
+(5 minute tutorial) </property>
+                <property name="name">next_button</property>
                 <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="xpad">77</property>
-                <property name="label" translatable="yes">&lt;u&gt;Skip tutorial,
-do later&lt;/u&gt;</property>
-                <property name="use-markup">True</property>
-                <property name="use-underline">True</property>
-                <property name="justify">center</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <signal name="pressed" handler="on_back_button_pressed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="padding">45</property>
+                <property name="position">4</property>
               </packing>
             </child>
             <child>
@@ -155,6 +155,7 @@ do later&lt;/u&gt;</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <signal name="pressed" handler="on_next_button_pressed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
