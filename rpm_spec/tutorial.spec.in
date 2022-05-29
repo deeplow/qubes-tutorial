@@ -1,15 +1,15 @@
-Name: qubes-skeleton-vm
+Name: qubes-tutorial
 Version: @VERSION@
 Release: @REL@%{?dist}
 
-Summary: Qubes Skeleton package for VM
+Summary: Integrated tutorial application for Qubes OS
 License: GPLv2+
 URL: https://www.qubes-os.org/
 
 Source0: %{name}-%{version}.tar.gz
 
 %description
-Qubes Skeleton package for VM.
+Integrated tutorial application for Qubes OS.
 
 %prep
 %setup -q
@@ -18,11 +18,10 @@ Qubes Skeleton package for VM.
 #something to build?
 
 %install
-make install-vm DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
 
 %files
-/usr/lib/qubes/skeleton/README
-/usr/lib/qubes/skeleton/skeleton.sh
+/usr/lib/qubes/tutorial/README.md
 
 %changelog
 @CHANGELOG@
