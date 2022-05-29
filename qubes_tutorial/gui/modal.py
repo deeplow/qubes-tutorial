@@ -9,7 +9,7 @@ modal_builder.add_from_file("modal.ui")
 window = modal_builder.get_object("modal_window")
 
 custom_information = Gtk.Builder()
-custom_information.add_from_file('step_1.ui')
+custom_information.add_from_file('../included_tutorials/onboarding/step_1.ui')
 custom_modal = custom_information.get_object("custom_modal")
 
 placeholder = modal_builder.get_object("modal_placeholder")
