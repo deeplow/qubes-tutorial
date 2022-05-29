@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 class TestTutorial(unittest.TestCase):
 
     def setUp(self):
-        self.tutorial = tutorial.Tutorial()
+        self.tutorial = tutorial.Tutorial(ui_callback=Mock())
 
     def test_001_add_step(self):
         step = tutorial.Step("step1")
@@ -178,7 +178,7 @@ steps:
 - name: end
 """
 
-        tut = tutorial.Tutorial()
+        tut = tutorial.Tutorial(ui_callback=Mock())
         step_start  = tutorial.Step("start")
         step_middle = tutorial.Step("middle")
         step_end    = tutorial.Step("end")
@@ -200,7 +200,7 @@ steps:
 class TestTutorialDeserialization(unittest.TestCase):
 
     def setUp(self):
-        self.tut = tutorial.Tutorial()
+        self.tut = tutorial.Tutorial(ui_callback=Mock())
 
     @property
     def test_name(self):
@@ -242,17 +242,17 @@ class TestTutorialIncluded(unittest.TestCase):
         cwd = os.path.dirname(os.path.realpath(__file__))
         tut_path = os.path.join(cwd, file_path)
         tut_path = os.path.abspath(tut_path)
-        tut = tutorial.TutorialDebuggable()
+        tut = tutorial.TutorialDebuggable(ui_callback=Mock())
         tut.load_as_file(tut_path)
         return tut
 
     def test_onboarding_tutorial_1(self):
-
-        tut = self._load_tutorial("../included_tutorials/onboarding-tutorial-1/README.md")
+        tut = self._load_tutorial(
+            "../included_tutorials/onboarding-tutorial-1/README.md",
+        )
         for i, interactions in enumerate(tut.generate_successful_interaction_sequences()):
             logging.info("interaction path " + str(i))
             interactions_q = Queue()
             for interaction in interactions:
                 interactions_q.put(interaction)
             tut.start(interactions_q)
-

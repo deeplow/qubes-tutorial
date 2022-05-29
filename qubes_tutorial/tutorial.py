@@ -7,6 +7,7 @@ import yaml
 import json
 from collections import OrderedDict
 import time
+import threading
 
 import gi
 
@@ -53,9 +54,8 @@ def main():
     if args.create:
         create_tutorial(args.create, scope)
     elif args.load:
-        tutorial = Tutorial()
-        tutorial.load_as_file(args.load)
-        tutorial.start()
+        app = TutorialApp(tutorial_path=args.load)
+        app.run()
 
 def create_tutorial(outfile, scope):
     interactions_q = Queue()
@@ -201,11 +201,15 @@ class Tutorial:
     where system states are nodes and edges are interactions.
 
     "Steps" are the nodes and "interactions" are the arcs
+
+    Args:
+      :ui_callback func: callback function to update UI
     """
 
-    def __init__(self):
+    def __init__(self, ui_callback):
         self.tutorial_dir = None
         self.step_map = OrderedDict() # maps a step's name to a step object
+        self.ui_callback = ui_callback
 
     def check_integrity(self):
         """
@@ -428,20 +432,20 @@ class TutorialDuplicateTransitionException(TutorialException):
 
 class TutorialApp(Gtk.Application):
 
-    def __init__(self):
+    def __init__(self, tutorial_path, tutorial=None):
         super().__init__()
         self.set_application_id("org.qubes.qui.Tutorial")
-        print("ran this")
+
+        self.tutorial = Tutorial(ui_callback=self.do_interaction)
+        self.tutorial.load_as_file(tutorial_path)
+
+    def do_interaction(self, arg):
+        print("method handler for `interaction' called with argument", arg)
 
     def do_activate(self):
         print("do activate")
-
+        threading.Thread(target=self.tutorial.start).start()
 
 
 if __name__ == "__main__":
-    #t = Tutorial()
-    #t.load_as_file("")
-    #t.start_tutorial()
     main()
-    #app = TutorialApp()
-    #app.run()
