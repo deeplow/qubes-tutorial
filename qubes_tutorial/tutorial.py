@@ -127,7 +127,7 @@ class Step:
         return dump
 
 
-def send_interaction(interaction_str: str):
+def register_interaction(interaction_str: str):
     """Configures DBus proxy to communicate with tutorial loop"""
 
     bus = dbus.SessionBus()
