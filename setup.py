@@ -21,7 +21,7 @@ setuptools.setup(
             'qubes_tutorial.gui': ['*.ui', 'images/*'],
     },
     entry_points={
-        'gui_scripts': [
+        'console_scripts': [
             'qubes-tutorial = qubes_tutorial.tutorial:main'
         ]
     }
