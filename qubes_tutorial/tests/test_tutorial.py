@@ -4,6 +4,7 @@ import qubes_tutorial.interactions as interactions
 from unittest.mock import Mock
 import os
 import re
+from queue import Queue
 
 class TestTutorial(unittest.TestCase):
 
@@ -237,10 +238,16 @@ class TestTutorialIncluded(unittest.TestCase):
         cwd = os.path.dirname(os.path.realpath(__file__))
         tut_path = os.path.join(cwd, file_path)
         tut_path = os.path.abspath(tut_path)
-        tut = tutorial.Tutorial()
+        tut = tutorial.TutorialDebuggable()
         tut.load_as_file(tut_path)
         return tut
 
     def test_onboarding_tutorial_1(self):
         tut = self._load_tutorial("../included_tutorials/onboarding-tutorial-1/README.md")
-        tut.start()
+        for interactions in tut.generate_successful_interaction_sequences():
+            print("interaction path 1")
+            interactions_q = Queue()
+            for interaction in interactions:
+                interactions_q.put(interaction)
+            tut.start(interactions_q)
+

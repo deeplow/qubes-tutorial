@@ -108,6 +108,15 @@ class Step:
                 return True
         return False
 
+    def get_next_steps(self):
+        """
+        Returns the steps to which the current node can transition.
+        """
+        return self.transitions.values()
+
+    def get_possible_interactions(self):
+        return self.transitions.keys()
+
     def next(self, interaction: Interaction):
         for possible_interaction in self.transitions.keys():
             if possible_interaction == interaction: # FIXME in the future check if is subset
@@ -225,13 +234,13 @@ class Tutorial:
             tutorial_text = self.save_as_text()
             outfile.write(json.dumps(tutorial_text))
 
-    def start(self, interaction_q=None):
+    def start(self, interactions_q=None):
         """
         Plays the tutorial
         """
         logging.info("starting tutorial")
 
-        if interaction_q is None:
+        if interactions_q is None:
             interactions_q = Queue()
         watchers.start_interaction_logger(self.get_scope(), interactions_q)
 
@@ -248,11 +257,7 @@ class Tutorial:
 
             step = step.next(interaction)
 
-        watchers.stop_interaction_logger(scope)
-
-
-    def get_first_step(self) -> None:
-        return self.step_map.get("start")
+        watchers.stop_interaction_logger(self.get_scope())
 
     def add_step(self, step: Step) -> None:
         if step.name not in self.step_map.keys():
@@ -261,8 +266,17 @@ class Tutorial:
             raise TutorialDuplicateStepException(step.name)
             logging.error("Step {} has been defined twice".format(step.name))
 
+    def get_first_step(self) -> Step:
+        return self.step_map.get("start")
+
+    def get_last_step(self) -> Step:
+        return self.step_map.get("end")
+
     def get_step(self, step_name: str):
         return self.step_map.get(step_name)
+
+    def get_steps(self):
+        return self.step_map.values()
 
     def add_transition(self, source_step: Step, interaction: Interaction,
                        target_step: Step) -> None:
@@ -295,6 +309,40 @@ class Tutorial:
             return "node2"
         if node == "node2":
             return "end"
+
+class TutorialDebuggable(Tutorial):
+
+    def generate_successful_interaction_sequences(self):
+        """
+        Returns the lists with all the possible interaction sequences (excluding
+        cycles) that take the user from the start until the end.
+        """
+
+        success_interaction_sequences = []
+        start_step = self.get_first_step()
+        end_step = self.get_last_step()
+
+        def find_all_interaction_paths(current_step, visited_steps, path):
+            visited_steps.append(current_step)
+
+            if current_step == end_step:
+                success_interaction_sequences.append(path.copy())
+            else:
+                for interaction in current_step.get_possible_interactions():
+                    next_step = current_step.next(interaction)
+                    if next_step not in visited_steps:
+                        path.append(interaction)
+                        find_all_interaction_paths(next_step, visited_steps, path)
+
+            if len(path) > 0:
+                path.pop()
+            visited_steps.remove(current_step)
+
+        visited = []
+        path = []
+        find_all_interaction_paths(start_step, visited, path)
+
+        return success_interaction_sequences
 
 class TutorialException(Exception):
     def __init__(self, message="Exception occured in the tutorial."):

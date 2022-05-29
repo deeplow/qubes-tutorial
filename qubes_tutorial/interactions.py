@@ -7,6 +7,12 @@ class Interaction():
     def __init__(self, interaction_type):
         self.type = interaction_type
 
+    def __eq__(self, other):
+        return self.type == other.type
+
+    def __hash__(self):
+        return self.type.__hash__()
+
     def gen_report(self):
         return "generic step"
 
