@@ -179,9 +179,11 @@ class StepUI:
         title = ui_item_dict.get('title')
         next_button_label = ui_item_dict.get('next_button')
         back_button_label = ui_item_dict.get('back_button')
-        ui.setup_modal(template_path, title,
-                       next_button_label, on_next_button_pressed,
-                       back_button_label, on_back_button_pressed)
+        window = ui.ModalWindow(template_path, title,
+                    next_button_label, on_next_button_pressed,
+                    back_button_label, on_back_button_pressed)
+        window.show_all()
+        Gtk.main()
 
     def _setup_ui_step_information(self, ui_item_dict, interactions_q):
 
