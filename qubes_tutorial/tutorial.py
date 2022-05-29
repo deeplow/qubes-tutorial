@@ -329,14 +329,11 @@ class Tutorial:
 
     def process_interactions(self):
         while not self.interactions_q.empty():
-            logging.info('currently on step "{}"'.format(self.current_step.name))
-
             interaction = self.interactions_q.get()
-            logging.info("processed interaction " + interaction)
-
             if not self.current_step.has_transition(interaction):
-                logging.debug("interaction does not transition")
+                logging.debug(f"[skip interaction] {interaction}")
                 continue
+            logging.info("[good interaction] " + interaction)
 
             self.current_step.teardown()
             next_step = self.current_step.next(interaction)
@@ -345,6 +342,7 @@ class Tutorial:
                 # TODO disable tutorial in components
                 exit()
             else:
+                logging.info('now on step "{}"'.format(self.current_step.name))
                 self.current_step = next_step
 
                 # FIXME add the following to GLib idle

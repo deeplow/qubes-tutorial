@@ -24,9 +24,6 @@ class TutorialInteractionsListener(dbus.service.Object):
                              name: str,
                              subject: str,
                              arguments: str):
-        logging.info("Registered interaction:\n\t-{}\n\t-{}\n\t-{}".format(
-            name, subject, arguments))
-
         # must empy str instead of none since D-Bus doesn't support it
         if subject == "":
             self.interactions_q.put("{}".format(name))

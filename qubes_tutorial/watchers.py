@@ -222,11 +222,9 @@ class QrexecWatcher(AbstractSysLogWatcher):
         if untrusted_source in self.scope: # only consider in scope actions initiated by vm in scope
             if fail_reason:
                 # FIXME the target may be None. Instead replace by the intended target
-                logging.info("\n\tdecision: deny\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}"\
-                    .format(untrusted_policy, untrusted_source, untrusted_target))
-                #yield QrexecPolicyInteraction(False, policy, source, target)
+                #yield QrexecPolicyInteraction(False, policy, untrusted_source, target)
+                # TODO generate interaction when policy is denied
+                pass
             else:
-                logging.info("\n\tdecision: allow\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}"\
-                    .format(untrusted_policy, untrusted_source, untrusted_target))
-                #yield QrexecPolicyInteraction(True, policy, source, target)
+                #yield QrexecPolicyInteraction(True, policy, untrusted_source, target)
                 interactions.register("qubes-qrexec-{}".format(untrusted_policy), untrusted_source, untrusted_target)
