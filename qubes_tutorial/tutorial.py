@@ -160,6 +160,16 @@ class Step:
     def get_possible_interactions(self):
         return self.transitions.keys()
 
+    def get_extensions(self):
+        components = set()
+        if self.setup_dicts:
+            for item in self.setup_dicts:
+                components.add(item['component'])
+
+        # dom0 shell does not count as extension
+        components.discard('dom0')
+        return components
+
     def next(self, interaction: str):
         for possible_interaction in self.transitions.keys():
             if possible_interaction == interaction:
@@ -240,16 +250,6 @@ class Tutorial:
             self.add_step(step)
         self.add_step(Step('end'))
 
-        # enable all tutorial extensions necessary
-        for step_data in steps_data:
-            setup_dict = step_data.get('setup', {})
-            for item in setup_dict:
-                component_name  = item['component']
-                if component_name == 'dom0':
-                    continue
-                else:
-                    self.enable_extension(component_name)
-
         # add all transitions (edges)
         for step_data in steps_data:
             current_step = self.get_step(step_data['name'])
@@ -259,6 +259,11 @@ class Tutorial:
                 self.add_transition(current_step, interaction, next_step)
 
         self.check_integrity()
+
+        # enable all tutorial extensions necessary
+        for step in self.get_steps():
+            for extension in step.get_extensions():
+                self.enable_extension(extension)
 
     def load_as_file(self, file_path):
         if file_path.endswith("yaml") or file_path.endswith("yml"):
