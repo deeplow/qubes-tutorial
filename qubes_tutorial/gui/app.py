@@ -156,17 +156,20 @@ class TutorialUIDbusService(dbus.service.Object):
         screen the goal of the current task. When the user has acknowledged,
         it will show on the bottom-right corner as a reminder.
         """
-        task_number  = int(ui_item_dict.get('task_number'))
-        task_description  = ui_item_dict.get('task_description')
+        task_number  = int(ui_item_dict.get('task_number', "-1"))
+        task_description  = ui_item_dict.get('task_description', "")
 
-        def on_ok():
-            interactions.register("tutorial:next")
+        if task_number > 0:
+            def on_ok():
+                interactions.register("tutorial:next")
 
-        def on_exit():
-            interactions.register("tutorial:exit")
+            def on_exit():
+                interactions.register("tutorial:exit")
 
-        self.current_task.update(task_number, task_description, on_ok, on_exit)
-
+            self.current_task.update(task_number, task_description, on_ok, on_exit)
+        else:
+            self.current_task.teardown()
+            self.current_task.hide()
 
 class TutorialUIInterface:
     """
