@@ -206,6 +206,7 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         self.move_to_center()
         self.show_all()
         self.button.set_label("OK")
+        self.button.get_style_context().add_class("blue_button")
 
         self.ok_callback = ok_callback
         self.exit_callback = exit_callback
@@ -234,6 +235,7 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         if self.button_is_exit:
             self.exit_callback()
         else: # OK button
+            self.button.get_style_context().remove_class("highlighted")
             self.button.set_label("exit tutorial")
             self.move_to_corner()
             self.ok_callback()

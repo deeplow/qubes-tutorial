@@ -16,6 +16,13 @@ decoration, window, window.background {
     border-radius: 3px;
 }
 
+.blue_button {
+    border-color: dodgerblue;
+    background-color: dodgerblue;
+    background-image: none;  /* HACK to make background color show */
+    color: white;
+}
+
 /**
  * Step Information Pointing
  **/

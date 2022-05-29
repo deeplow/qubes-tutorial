@@ -140,6 +140,9 @@
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <signal name="pressed" handler="on_next_button_pressed" swapped="no"/>
+                <style>
+                  <class name="blue_button"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">False</property>

@@ -19,11 +19,14 @@
             <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="ok_btn">
-                <property name="label" translatable="yes">button</property>
+                <property name="label" translatable="yes">OK</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <signal name="pressed" handler="on_ok_btn_pressed" swapped="no"/>
+                <style>
+                  <class name="blue_button"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>
