@@ -1,0 +1,9 @@
+- name: "start"
+  transitions:
+   - interaction_type: "interaction 1"
+     step: "step_2"
+
+- name: "step_2"
+  transitions:
+   - interaction_type: "interaction 2"
+     step: "end"
