@@ -116,12 +116,19 @@ class Step:
             empty_ui_dict = [{'type': 'none'}]
             logging.info(setup_ui(empty_ui_dict))
 
+    def teardown_ui(self):
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
+        teardown_ui = proxy.get_dbus_method('teardown_ui', 'org.qubes.tutorial.ui')
+        logging.info(teardown_ui())
+
     def teardown(self):
         """
         Tasks to run when the step is finished
         """
         logging.info("teardown step")
         self.execute(self.teardown_dicts)
+        self.teardown_ui()
 
     def get_name(self):
         return self.name

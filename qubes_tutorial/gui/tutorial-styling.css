@@ -1,0 +1,36 @@
+@keyframes animated-highlight {
+    from { box-shadow: inset 0px 0px 4px  @theme_selected_bg_color; }
+    to   { box-shadow: inset 0px 0px 10px @theme_selected_bg_color; }
+}
+
+@keyframes animated-highlight-wrong {
+    from { box-shadow: inset 0px 0px 4px  #f44933; }
+    to   { box-shadow: inset 0px 0px 10px #f44933; }
+}
+
+.highlighted {
+    animation: animated-highlight 1s infinite alternate;
+}
+
+decoration, window, window.background {
+    border-radius: 3px;
+}
+
+/**
+ * Step Information Pointing
+ **/
+#dummy_box {
+    margin-top:    -12px;
+    margin-bottom: -12px;
+    margin-right:   20px;
+    margin-left:    20px;
+}
+#popover_text {
+    padding: 20px 20px 10px 20px;
+    font-weight: bold;
+    font-size: 17px;
+}
+#popover_subtext {
+    padding: 0px 20px 20px 20px;
+    font-size: 15px;
+}

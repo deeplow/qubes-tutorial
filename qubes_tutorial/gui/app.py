@@ -10,7 +10,10 @@ import pkg_resources
 
 import gi
 gi.require_version("Gtk", "3.0")
+gi.require_version('Gdk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
+
+import cairo
 
 import qubes_tutorial.interactions as interactions
 
@@ -46,18 +49,25 @@ class TutorialUIDbusService(dbus.service.Object):
     def setup_widgets(self):
         self.modal = ModalWindow()
         self.step_info = StepInformation()
+        self.step_info_pointing = StepInformationPointing()
         self.current_task = CurrentTaskInfo()
 
-        self.hideable_widgets = [
-            self.modal,
-            self.step_info
-        ]
+        self.enabled_widgets = []
 
     @dbus.service.method('org.qubes.tutorial.ui')
     def setup_ui(self, ui_dict):
         self.event_q.put(ui_dict)
         GLib.idle_add(self.update_ui)
         return "setup in progress"
+
+    @dbus.service.method('org.qubes.tutorial.ui')
+    def teardown_ui(self):
+        logging.info("processing UI teardown")
+        for widget in self.enabled_widgets:
+            widget.teardown()
+            widget.hide()
+            self.enabled_widgets.remove(widget)
+        return "completed UI teardown"
 
     def update_ui(self):
         while not self.event_q.empty():
@@ -69,23 +79,25 @@ class TutorialUIDbusService(dbus.service.Object):
         logging.info("processing some UI change")
         logging.info(ui_dict)
 
-        for widget in self.hideable_widgets:
-            widget.hide()
-
         for ui_item_dict in ui_dict:
             ui_type = ui_item_dict['type']
             if ui_type == "modal":
                 self.setup_ui_modal(ui_item_dict)
+                self.enabled_widgets += [self.modal]
             elif ui_type == "step_information":
                 self.setup_ui_step_information(ui_item_dict)
+                self.enabled_widgets += [self.step_info]
+            elif ui_type == "step_information_pointing":
+                self.setup_ui_step_information_pointing(ui_item_dict)
+                self.enabled_widgets += [self.step_info_pointing]
             elif ui_type == "current_task":
                 self.setup_ui_current_task(ui_item_dict)
+                self.enabled_widgets += [self.current_task]
             elif ui_type == "none":
-                pass
+                self.enabled_widgets = []
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
-
 
     def setup_ui_modal(self, ui_item_dict: dict):
         logging.debug("setting up ui modal")
@@ -120,6 +132,14 @@ class TutorialUIDbusService(dbus.service.Object):
         else:
             logging.error("unknown value for 'has_ok_btn'")
 
+    def setup_ui_step_information_pointing(self, ui_item_dict):
+        title = ui_item_dict.get('title')
+        text  = ui_item_dict.get('text')
+        x = int(ui_item_dict.get('x_coord'))
+        y = int(ui_item_dict.get('y_coord'))
+        corner = ui_item_dict.get('point_to_corner')
+        self.step_info_pointing.update(title, text, x, y, corner)
+
     def setup_ui_current_task(self, ui_item_dict):
         """Informs the user of the current task
 
@@ -139,8 +159,22 @@ class TutorialUIDbusService(dbus.service.Object):
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 
 
+class TutorialUIInterface:
+
+    def update(self, *args, **kwargs):
+        """
+        Updating the widget's contents
+        """
+        pass
+
+    def teardown(self):
+        """
+        What needs to be run when the widget is no longer being displayed
+        """
+        pass
+
 @Gtk.Template(filename=os.path.join(ui_dir, "current_task.ui"))
-class CurrentTaskInfo(Gtk.Dialog):
+class CurrentTaskInfo(Gtk.Dialog, TutorialUIInterface):
     """Current Task Information
 
     Shows the user information of the current task they're performing.
@@ -207,7 +241,7 @@ class CurrentTaskInfo(Gtk.Dialog):
 
 
 @Gtk.Template(filename=os.path.join(ui_dir, "step_information.ui"))
-class StepInformation(Gtk.Dialog):
+class StepInformation(Gtk.Dialog, TutorialUIInterface):
     __gtype_name__ = "StepInformation"
     ok_btn = Gtk.Template.Child()
     title = Gtk.Template.Child()
@@ -231,8 +265,130 @@ class StepInformation(Gtk.Dialog):
     def on_ok_btn_pressed(self, button):
         self.ok_button_pressed_callback()
 
+class StepInformationPointing(Gtk.Window, TutorialUIInterface):
+    """
+    Indicates information about the current step, but instead of having to be
+    acknowledged by the user via an "OK" button, it directly points to
+    a coordinate on the screen.
+    """
+    def __init__(self):
+        Gtk.Window.__init__(self)
+
+        self.set_keep_above(True)
+        self.set_border_width(10)
+
+        # making the window transparent
+        screen = self.get_screen()
+        visual = screen.get_rgba_visual()
+        if visual != None and screen.is_composited():
+            self.set_visual(visual)
+        self.set_app_paintable(True)
+
+        # removing all window decorations
+        self.set_decorated(False)
+
+        self._create_dummy_boxes()
+
+    def update(self, text, subtext, x, y, corner):
+        self._create_popover(text, subtext)
+        self.show_all()
+        # Functions that require widget to be already rendered
+        self._position_on_screen(x, y, corner)
+        self._make_clickthrough()
+
+    def teardown(self):
+        # NOTE: popdown to make there isn't an invisible popup preventing the
+        # user from clicking anywehere else on the tutorial UI
+        self.popover.popdown()
+
+    def _position_on_screen(self, x, y, corner):
+        """
+        Positions popover arrow over specified point on the screen. Then
+        points to the corner.
+
+        NOTE: Only works after widget.show_all()
+        """
+        win_width  = 500
+        win_height = 200
+        self.resize(win_width, win_height)
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width  = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
+        target = None
+
+        if x < 0:
+            x = screen_width + x
+        if y < 0:
+            y = screen_height + y
+
+        if corner == "top right":
+            target = self.dummy_top_right
+            self.move(x - win_width, y)
+        elif corner == "top left":
+            target = self.dummy_top_left
+            self.move(x, y)
+        else:
+            raise Exception("corner must be one of 'top left' or 'top right'")
+        self.popover.set_relative_to(target)
+
+    def _create_dummy_boxes(self):
+        """ Creates dummy pointable objects at the edges of the window """
+        image = os.path.join(ui_dir, "images", "alpha_1px.png")
+
+        self.dummy_top_left = Gtk.Image.new_from_file(image)
+        self.dummy_top_right = Gtk.Image.new_from_file(image)
+        self.dummy_bottom_left = Gtk.Image.new_from_file(image)
+        self.dummy_bottom_right = Gtk.Image.new_from_file(image)
+
+        dummy_box_top = Gtk.HBox()
+        dummy_box_bottom = Gtk.HBox()
+
+        dummy_box_top.pack_start(self.dummy_top_left, False, False, 0)
+        dummy_box_top.pack_end(self.dummy_top_right, False, False, 0)
+        dummy_box_bottom.pack_start(self.dummy_bottom_left, False, False, 0)
+        dummy_box_bottom.pack_end(self.dummy_bottom_right, False, False, 0)
+
+        dummy_box = Gtk.VBox()
+        dummy_box.set_name("dummy_box")
+        dummy_box.pack_start(dummy_box_top, False, False, 0)
+        dummy_box.pack_end(dummy_box_bottom, False, False, 0)
+
+        self.add(dummy_box)
+
+    def _create_popover(self, text, subtext):
+        self.popover = Gtk.Popover.new(self.dummy_top_left)
+        vbox = Gtk.VBox()
+
+        self.popover_text = Gtk.Label()
+        self.popover_text.set_use_markup(True)
+        self.popover_text.set_name("popover_text")
+
+        self.popover_subtext = Gtk.Label()
+        self.popover_subtext.set_use_markup(True)
+        self.popover_subtext.set_name("popover_subtext")
+
+        vbox.pack_start(self.popover_text, False, True, 0)
+        vbox.pack_start(self.popover_subtext, False, True, 0)
+        vbox.show_all()
+
+        self.popover.add(vbox)
+        self.popover_text.set_text(text)
+        self.popover_subtext.set_text(subtext)
+        self.popover.popup()
+
+    def _make_clickthrough(self):
+        """ Make window clickthrough
+
+        Only works after widget.show_all()
+        """
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 0 , 0)
+        surface_ctx = cairo.Context(surface)
+        region = Gdk.cairo_region_create_from_surface(surface)
+        self.input_shape_combine_region(region)
+
+
 @Gtk.Template(filename=os.path.join(ui_dir, "modal.ui"))
-class ModalWindow(Gtk.Window):
+class ModalWindow(Gtk.Window, TutorialUIInterface):
     __gtype_name__ = "ModalWindow"
     modal_placeholder = Gtk.Template.Child()
     title_label = Gtk.Template.Child()
