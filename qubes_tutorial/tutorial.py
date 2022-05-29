@@ -74,46 +74,33 @@ class Step:
         self.setup_dicts = setup_dicts
         self.teardown_dicts = teardown_dicts
 
+    def execute(self, items_to_execute: dict=None):
+        """
+        Processes and executes setup or teardown items
+        """
+        if items_to_execute is None:
+            return
+        for item in items_to_execute:
+            # FIXME check if component is valid
+            component  = item['component']
+            function   = item['function']
+            if component == 'dom0':
+                subprocess.Popen(function, shell=True)
+            else:
+                args = item.get('parameters', {}).values()
+
+                # Sends a notification to the tutorial UI that it should update
+                proxy = dbus.SessionBus()\
+                        .get_object('org.qubes.tutorial.extensions', f"/{component}")\
+                        .get_dbus_method(function, 'org.qubes.tutorial.extensions')
+                proxy(*args)
+
     def setup(self):
         """
         Initialize the step
         """
         self.setup_ui()
-
-        if self.setup_dicts is not None:
-            for setup_item in self.setup_dicts:
-                item_type = setup_item['type']
-                if item_type == "qvm-run":
-                    self.setup_run_in_vm(setup_item)
-                elif item_type == "qubes-menu-highlight":
-                    self.setup_qubes_menu_hightlight(setup_item)
-                else:
-                    raise Exception("Setup of type '{}' not recognized.".format(
-                        item_type))
-
-    def setup_run_in_vm(self, data: dict=None):
-        vm_name = data.get("vm_name")
-        command = data.get("command")
-        subprocess.Popen(["qvm-run", vm_name, command], stdin=subprocess.DEVNULL)
-
-    def setup_qubes_menu_hightlight(self, data: dict=None):
-        logging.info("setting qubes menu")
-        logging.info(data)
-        vm_name = data.get("vm_name")
-        app_name = data.get("app_name")
-        override_exec = data.get("override_exec", "")
-
-        if type(override_exec) == list:
-            override_exec_str = " && ".join(override_exec)
-        else:
-            override_exec_str = override_exec
-
-        # Sends a notification to the tutorial UI that it should update
-        bus = dbus.SessionBus()
-        proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
-        show_path_to_app = proxy.get_dbus_method('show_path_to_app',
-                                                 'org.qubes.tutorial.qubesmenu')
-        show_path_to_app(vm_name, app_name, override_exec_str)
+        self.execute(self.setup_dicts)
 
     def setup_ui(self):
         """
@@ -135,24 +122,7 @@ class Step:
         Tasks to run when the step is finished
         """
         logging.info("teardown step")
-        if self.teardown_dicts is not None:
-            for teardown_item in self.teardown_dicts:
-                item_type = teardown_item['type']
-                if item_type == "qubes-menu-remove-highlight":
-                    self.teardown_qubes_menu_hightlight(teardown_item)
-                else:
-                    raise Exception("Teardown of type '{}' not recognized."\
-                        .format(item_type))
-
-    def teardown_qubes_menu_hightlight(self, data: dict=None):
-        logging.info("teardown qubes menu")
-
-        # Sends a notification to the tutorial UI that it should update
-        bus = dbus.SessionBus()
-        proxy = bus.get_object('org.qubes.tutorial.qubesmenu', '/org/qubes/tutorial/qubesmenu')
-        remove_highlights = proxy.get_dbus_method('remove_highlights',
-                                                  'org.qubes.tutorial.qubesmenu')
-        remove_highlights()
+        self.execute(self.teardown_dicts)
 
     def get_name(self):
         return self.name
