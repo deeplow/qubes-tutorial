@@ -46,7 +46,7 @@ def main():
     if args.create:
         create_tutorial(args.create, scope, interactions_q)
     else:
-        tutorial = Tutorial("tutorial.tut") # FIXME remove hardcoded
+        tutorial = Tutorial()
         start_tutorial(tutorial, interactions_q)
 
     watchers.stop_interaction_logger(scope)
@@ -136,12 +136,8 @@ class Tutorial:
     "Steps" are the nodes and "interactions" are the arcs
     """
 
-    def __init__(self, file_path):
-        if not infile:
-            self.create_mode = True
-            self.step_map = OrderedDict() # maps a step's name to a step object
-        else:
-            self.load_as_file(file_path)
+    def __init__(self):
+        self.step_map = OrderedDict() # maps a step's name to a step object
 
     def check_integrity(self):
         """
@@ -186,9 +182,10 @@ class Tutorial:
     def load_as_file(self, file_path):
         if file_path.endswith("yaml") or file_path.endswith("yml"):
             self._load_as_file_yaml(file_path)
-        elif file_path.endswith("yaml"):
+        elif file_path.endswith("md"):
             self._load_as_file_literate_yaml(file_path)
         else:
+            import pudb; pu.db
             raise Exception("File not found: {}".format(file_path))
 
     def _load_as_file_yaml(self, file_path):
@@ -307,7 +304,7 @@ class TutorialApp(Gtk.Application):
 
 if __name__ == "__main__":
     t = Tutorial()
-    t._load_as_file_literate_yaml("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
+    t.load_as_file("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
     t.start_tutorial()
     #main()
     #app = TutorialApp()
