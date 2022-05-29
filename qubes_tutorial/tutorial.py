@@ -25,10 +25,17 @@ def main():
     parser = argparse.ArgumentParser(
             description='Integrated tutorials tool for Qubes OS')
 
-    parser.add_argument('--create', '-c',
+    action_group = parser.add_mutually_exclusive_group(required=True)
+    action_group.add_argument('--create', '-c',
                         type=argparse.FileType('w', encoding='UTF-8'),
                         metavar="FILE",
                         help='Create a tutorial')
+
+    action_group.add_argument('--load', '-l',
+                        type=str,
+                        metavar="FILE",
+                        help='Load a tutorial from a .yaml or literate .md.'\
+                            + "\nFor example 'qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md'")
 
     parser.add_argument('--scope', '-s',
                         type=str,
@@ -40,33 +47,20 @@ def main():
     if args.scope:
         scope = [x.strip() for x in args.scope.split(",")]
 
-    interactions_q = Queue()
-    watchers.init_watchers(scope)
-
     if args.create:
-        create_tutorial(args.create, scope, interactions_q)
-    else:
+        create_tutorial(args.create, scope)
+    elif args.load:
         tutorial = Tutorial()
-        start_tutorial(tutorial, interactions_q)
+        tutorial.load_as_file(args.load)
+        tutorial.start()
+
+def create_tutorial(outfile, scope):
+    interactions_q = Queue()
+    watchers.start_interaction_logger(scope, interactions_q)
+
+    # TODO tutorial creation logic
 
     watchers.stop_interaction_logger(scope)
-
-
-def start_tutorial(tutorial, interactions_q):
-    logging.info("starting tutorial")
-
-    # TODO global logs monitoring
-
-    step = tutorial.get_first_step()
-    while not step.is_last():
-        logging.info('currently on step "{}"'.format(step.name))
-        interaction = interactions_q.get(block=True)
-
-        if not step.has_transition(interaction):
-            logging.debug("interaction does not transition")
-            continue
-
-        step = step.next(interaction)
 
 def create_tutorial(outfile, scope, interactions_q):
     logging.info("creating tutorial")
@@ -155,6 +149,12 @@ class Tutorial:
 
         # TODO all steps are reachable
 
+    def get_scope(self):
+        """
+        Returns the list of VMs that are affected by the tutorial
+        """
+        # TODO complete function by parsing all VMs and components in all steps
+        return []
 
     def load_as_yaml(self, yaml_text):
         """
@@ -224,6 +224,31 @@ class Tutorial:
         with open(outfile, 'w'):
             tutorial_text = self.save_as_text()
             outfile.write(json.dumps(tutorial_text))
+
+    def start(self):
+        """
+        Plays the tutorial
+        """
+        logging.info("starting tutorial")
+
+        interactions_q = Queue()
+        watchers.start_interaction_logger(self.get_scope(), interactions_q)
+
+        # TODO global logs monitoring
+
+        step = self.get_first_step()
+        while not step.is_last():
+            logging.info('currently on step "{}"'.format(step.name))
+            interaction = interactions_q.get(block=True)
+
+            if not step.has_transition(interaction):
+                logging.debug("interaction does not transition")
+                continue
+
+            step = step.next(interaction)
+
+        watchers.stop_interaction_logger(scope)
+
 
     def get_first_step(self) -> None:
         return self.step_map.get("start")
@@ -303,9 +328,9 @@ class TutorialApp(Gtk.Application):
 
 
 if __name__ == "__main__":
-    t = Tutorial()
-    t.load_as_file("qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md")
-    t.start_tutorial()
-    #main()
+    #t = Tutorial()
+    #t.load_as_file("")
+    #t.start_tutorial()
+    main()
     #app = TutorialApp()
     #app.run()

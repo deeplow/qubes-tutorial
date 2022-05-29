@@ -226,3 +226,21 @@ class TestTutorialDeserialization(unittest.TestCase):
     def test_002_load_from_yaml_simple_file(self):
         test_data_path = self.get_test_data_path(self.test_name, "yaml")
         self.tut.load_as_file(test_data_path)
+
+
+class TestTutorialIncluded(unittest.TestCase):
+
+    def _load_tutorial(self, file_path):
+        """
+        Loads tutorial from a path relative to the tests directory
+        """
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        tut_path = os.path.join(cwd, file_path)
+        tut_path = os.path.abspath(tut_path)
+        tut = tutorial.Tutorial()
+        tut.load_as_file(tut_path)
+        return tut
+
+    def test_onboarding_tutorial_1(self):
+        tut = self._load_tutorial("../included_tutorials/onboarding-tutorial-1/README.md")
+        tut.start()

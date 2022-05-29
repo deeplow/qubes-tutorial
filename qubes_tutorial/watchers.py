@@ -33,7 +33,7 @@ class InteractionLogger:
 
     def run(self):
         for watcher in self.watchers:
-            self.interactions.put()
+            self.interactions.put(Interaction("FIXME something"))
 
     def get_interaction(self):
         """gets the next interaction """
@@ -53,8 +53,9 @@ def start_interaction_logger(scope, interactions_q):
 
 
 async def run():
-    async for i in ticker(1, 10):
-        print(i)
+    pass
+    #async for i in ticker(1, 10):
+    #    print(i)
 
 def stop_interaction_logger(scope: list):
     for vm in scope:
