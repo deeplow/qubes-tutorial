@@ -35,7 +35,7 @@ def start_tutorial(tutorial_path):
         )
 
         # start controller only after UI initializes
-        time.sleep(0.2)
+        time.sleep(0.5)
         print("staring controller...")
         tutorial = Tutorial()
         tutorial.load_as_file(tutorial_path)
