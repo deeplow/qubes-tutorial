@@ -37,6 +37,16 @@ class TutorialUI(dbus.service.Object):
 
         Gtk.main()
 
+    def send_interaction(self, interaction_str):
+        """Configures DBus proxy to communicate with tutorial loop"""
+
+        bus = dbus.SessionBus()
+        logging.info("sending interaction")
+        proxy = bus.get_object('org.qubes.tutorial.interactions', '/')
+        register_interaction_proxy =\
+            proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
+        register_interaction_proxy(interaction_str)
+
     def setup_widgets(self):
         self.modal = ui.ModalWindow()
         #self.tutorial_info = self.builder.get_object("TutorialInformation")
@@ -93,11 +103,11 @@ class TutorialUI(dbus.service.Object):
 
         def on_next_button_pressed():
             # FIXME send interaction "click main button"
-            pass
+            self.send_interaction("click main button")
 
         def on_back_button_pressed():
             # FIXME send interaction "click secondary button"
-            pass
+            self.send_interaction("click secondary button")
 
         template = ui_item_dict['template']
         template_path = os.path.join(self.tutorial_dir, template)

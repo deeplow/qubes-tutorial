@@ -407,8 +407,9 @@ class TutorialInteractionsListener(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, '/')
 
     @dbus.service.method('org.qubes.tutorial.interactions')
-    def register_interaction(self, interaction):
-        logging.info("Registered interaction " + str(interaction))
+    def register_interaction(self, interaction_str):
+        logging.info("Registered interaction " + str(interaction_str))
+        interaction = Interaction(interaction_str)
         self.interactions_q.put(interaction)
         return "registered interaction"
 

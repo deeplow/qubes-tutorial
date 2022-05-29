@@ -26,14 +26,23 @@ class ModalWindow(Gtk.Window):
     next_button = Gtk.Template.Child()
     back_button = Gtk.Template.Child()
 
+    def __init__(self):
+        super().__init__()
+        self.custom_modal = None
+
     def update(self, step_ui_path, title,
                  next_button_label, next_button_callback,
                  back_button_label=None, back_button_callback=None):
 
         custom_information = Gtk.Builder()
         custom_information.add_from_file(step_ui_path)
-        custom_modal = custom_information.get_object("custom_modal")
-        self.modal_placeholder.pack_start(custom_modal, True, True, 0)
+
+        if self.custom_modal:
+            previous_ui = self.custom_modal
+            self.modal_placeholder.remove(previous_ui)
+
+        self.custom_modal = custom_information.get_object("custom_modal")
+        self.modal_placeholder.pack_start(self.custom_modal, True, True, 0)
 
         self.title_label.set_label(title)
         self.next_button.set_label(next_button_label)
