@@ -24,10 +24,5 @@ class ModalWindow(Gtk.Window):
         self.modal_placeholder.pack_start(custom_modal, True, True, 0)
 
         self.title_label.set_label(title)
-
-        if back_button_label is None:
-            self.back_button.set_label("") # FIXME make invisible
-        else:
-            self.back_button.set_label("<u>{}</u>".format(back_button_label))
-
+        self.back_button.set_label("<u>{}</u>".format(back_button_label))
         self.next_button.set_label(next_button_label)
