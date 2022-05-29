@@ -161,7 +161,7 @@ def register_interaction(interaction_str: str):
     register_interaction_proxy =\
         proxy.get_dbus_method('register_interaction', 'org.qubes.tutorial.interactions')
     register_interaction_proxy(interaction_str)
-
+    return "done!"
 
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
