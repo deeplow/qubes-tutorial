@@ -215,15 +215,17 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
     def move_to_corner(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        screen_width    = self.get_screen().width()
-        screen_height = self.get_screen().height()
-        self.move( screen_width - widget_width, screen_height - widget_height)
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width  = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
+        self.move(screen_width - widget_width, screen_height - widget_height)
 
     def move_to_center(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        screen_width    = self.get_screen().width()
-        screen_height = self.get_screen().height()
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width  = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
     @Gtk.Template.Callback()
@@ -426,8 +428,9 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
     def move_to_center(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        screen_width  = self.get_screen().width()
-        screen_height = self.get_screen().height()
+        primary_monitor = self.get_screen().get_display().get_primary_monitor()
+        screen_width  = primary_monitor.get_geometry().width
+        screen_height = primary_monitor.get_geometry().height
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
     @Gtk.Template.Callback()
