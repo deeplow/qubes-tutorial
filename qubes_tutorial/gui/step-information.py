@@ -16,10 +16,10 @@ class StepIndicator(Gtk.Window):
         self.set_style()
 
         # making the window transparent
-        self.screen = self.get_screen()
-        self.visual = self.screen.get_rgba_visual()
-        if self.visual != None and self.screen.is_composited():
-            self.set_visual(self.visual)
+        screen = self.get_screen()
+        visual = screen.get_rgba_visual()
+        if visual != None and screen.is_composited():
+            self.set_visual(visual)
         self.set_app_paintable(True)
 
         # removing all window decorations
