@@ -22,11 +22,11 @@ def start_tutorial(tutorial_path):
     try:
         print("staring ui as separate process...")
         tutorial_dir_path = os.path.dirname(tutorial_path)
-        import qubes_tutorial.app
+        import qubes_tutorial.gui.app
         parent_module_path =  os.path.dirname(os.path.dirname(
-                                os.path.realpath(qubes_tutorial.app.__file__)))
+                                os.path.realpath(qubes_tutorial.gui.app.__file__)))
         ui = subprocess.Popen(
-            ["python3", "-m", qubes_tutorial.app.__name__,
+            ["python3", "-m", qubes_tutorial.gui.app.__name__,
                         "--dir", tutorial_dir_path],
             cwd=parent_module_path
         )
