@@ -16,6 +16,7 @@ from gi.repository import GLib
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
 import qubes_tutorial.interactions as interactions
+import qubes_tutorial.extensions as extensions
 
 def start_tutorial(tutorial_path):
     try:
@@ -82,18 +83,16 @@ class Step:
             return
         for item in items_to_execute:
             # FIXME check if component is valid
-            component  = item['component']
-            function   = item['function']
-            if component == 'dom0':
-                subprocess.Popen(function, shell=True)
+            component_name  = item['component']
+            function_name   = item['function']
+            if component_name == 'dom0':
+                subprocess.Popen(function_name, shell=True)
             else:
-                args = item.get('parameters', {}).values()
-
                 # Sends a notification to the tutorial UI that it should update
-                proxy = dbus.SessionBus()\
-                        .get_object('org.qubes.tutorial.extensions', f"/{component}")\
-                        .get_dbus_method(function, 'org.qubes.tutorial.extensions')
-                proxy(*args)
+                args = item.get('parameters', {}).values()
+                function = extensions.get_extension_method(
+                    component_name, function_name)
+                function(*args)
 
     def setup(self):
         """

@@ -36,6 +36,16 @@ def tutorial_register(name: str, subject: str="", arguments: str=""):
     if tutorial_enabled:
         interactions.register(name, subject, arguments)
 
+def get_extension_method(component, method_name):
+    bus_name       = TutorialExtension.get_bus_name_from_component_name(component)
+    interface_name = TutorialExtension.get_interface_name()
+    object_path    = TutorialExtension.get_object_path()
+    proxy = dbus.SessionBus()\
+                .get_object(bus_name, object_path)\
+                .get_dbus_method(method_name, interface_name)
+    return proxy
+
+
 class TutorialExtension(dbus.service.Object):
     """
     External component that interacts with the tutorial.
@@ -45,7 +55,20 @@ class TutorialExtension(dbus.service.Object):
       the tutorial.
     """
 
-    __bus_name__ =  "org.qubes.tutorial.extensions"
+    __bus_name__    = "org.qubes.tutorial.extensions"
+    __object_path__ = "/"
+
+    @classmethod
+    def get_bus_name_from_component_name(cls, component_name):
+        return f"{cls.__bus_name__}.{component_name}"
+
+    @classmethod
+    def get_interface_name(cls):
+        return cls.__bus_name__
+
+    @classmethod
+    def get_object_path(cls):
+        return cls.__object_path__
 
     @classmethod
     def make_do_methods_dbus_services(cls):
@@ -65,8 +88,10 @@ class TutorialExtension(dbus.service.Object):
 
         DBusGMainLoop(set_as_default=True)
         self.make_do_methods_dbus_services()
-        bus = dbus.service.BusName(self.__bus_name__, bus=dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus, f'/{component_name}')
+
+        bus_name = self.get_bus_name_from_component_name(component_name)
+        bus = dbus.service.BusName(bus_name, bus=dbus.SessionBus())
+        dbus.service.Object.__init__(self, bus, self.get_object_path())
 
 
 class GtkTutorialExtension(TutorialExtension):
