@@ -60,7 +60,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{python3_sitelib}/qubes_tutorial/gui/modal.py
 %{python3_sitelib}/qubes_tutorial/gui/modal.ui
 %{python3_sitelib}/qubes_tutorial/gui/step_information.py
-%{python3_sitelib}/qubes_tutorial/gui/welcome_page.ui
 
 %dir %{python3_sitelib}/qubes_tutorial/tests
 %{python3_sitelib}/qubes_tutorial/tests/__pycache__/*
@@ -69,7 +68,20 @@ make install DESTDIR=$RPM_BUILD_ROOT
 # FIXME place images in %{_datadir}/
 %dir %{python3_sitelib}/qubes_tutorial/gui/images/
 %{python3_sitelib}/qubes_tutorial/gui/images/alpha_1px.png
-%{python3_sitelib}/qubes_tutorial/gui/images/qubes-logo.png
+
+# FIXME place tutorial in %{_datadir}/
+%dir %{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/images/*
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_1.ui
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_2.ui
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_17.ui
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_21.ui
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_33.ui
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/main.py
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/__init__.py
+%{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/__pycache__/*
+
+
 
 %{_bindir}/qubes-tutorial
 
