@@ -50,7 +50,9 @@ class TutorialUI(dbus.service.Object):
     def setup_widgets(self):
         self.modal = ui.ModalWindow()
         self.step_info = ui.StepInformation()
-        self.widgets = [
+        self.current_task = ui.CurrentTaskInfo()
+
+        self.hideable_widgets = [
             self.modal,
             self.step_info
         ]
@@ -92,7 +94,7 @@ class TutorialUI(dbus.service.Object):
         logging.info("processing some UI change")
         logging.info(ui_dict)
 
-        for widget in self.widgets:
+        for widget in self.hideable_widgets:
             widget.hide()
 
         for ui_item_dict in ui_dict:
@@ -101,10 +103,12 @@ class TutorialUI(dbus.service.Object):
                 self.setup_ui_modal(ui_item_dict)
             elif ui_type == "step_information":
                 self.setup_ui_step_information(ui_item_dict)
-                pass
+            elif ui_type == "current_task":
+                self.setup_ui_current_task(ui_item_dict)
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
+
 
     def setup_ui_modal(self, ui_item_dict: dict):
         logging.debug("setting up ui modal")
@@ -140,6 +144,26 @@ class TutorialUI(dbus.service.Object):
             self.step_info.update(title, text)
         else:
             logging.error("unknown value for 'has_ok_btn'")
+
+    def setup_ui_current_task(self, ui_item_dict):
+        """Informs the user of the current task
+
+        Has two UI elements. When shown the first time, it shows centered on
+        screen the goal of the current task. When the user has acknowledged,
+        it will show on the bottom-right corner as a reminder.
+        """
+
+        task_number  = int(ui_item_dict.get('task_number'))
+        task_description  = ui_item_dict.get('task_description')
+
+        def on_ok():
+            self.send_interaction("click OK")
+
+        def on_exit():
+            self.send_interaction("exit")
+
+        self.current_task.update(task_number, task_description, on_ok, on_exit)
+
 
 def main():
     log_fmt = "%(module)s: %(message)s"
