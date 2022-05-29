@@ -62,6 +62,10 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{python3_sitelib}/qubes_tutorial/gui/step_information.py
 %{python3_sitelib}/qubes_tutorial/gui/welcome_page.ui
 
+%dir %{python3_sitelib}/qubes_tutorial/tests
+%{python3_sitelib}/qubes_tutorial/tests/__pycache__/*
+%{python3_sitelib}/qubes_tutorial/tests/*.py
+
 # FIXME place images in %{_datadir}/
 %dir %{python3_sitelib}/qubes_tutorial/gui/images/
 %{python3_sitelib}/qubes_tutorial/gui/images/alpha_1px.png

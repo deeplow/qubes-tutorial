@@ -16,7 +16,7 @@ setuptools.setup(
     url='https://github.com/deeplow',
     keywords='integrated qubes tutorial',
     long_description=read_file('README.md'),
-    packages=("qubes_tutorial", "qubes_tutorial.gui"),
+    packages=("qubes_tutorial", "qubes_tutorial.gui", "qubes_tutorial.tests"),
     package_data = {
             'qubes_tutorial.gui': ['*.ui', 'images/*'],
     },
