@@ -78,13 +78,16 @@ def init_gui():
     pass
 
 
-class TutorialStep:
+class Step:
     """ Represents a current step in a tutorial """
 
     transitions = {} # map: interaction -> step
 
     def __init__(self, name: str):
         self.name = name
+
+    def get_name(self):
+        return self.name
 
     def is_last(self):
         return self.name == "end"
@@ -128,13 +131,13 @@ class Tutorial:
     def get_first_step(self) -> None:
         return self.step_map.get("start")
 
-    def add_step(self, step_name: str, step: TutorialStep) -> None:
-        if step_name not in self.step_map.keys():
-            self.step_map[step_name] = TutorialStep(step_name)
+    def add_step(self, step: Step) -> None:
+        if step.name not in self.step_map.keys():
+            self.step_map[step.name] = step
         else:
-            logging.error("Step {} has been defined twice".format(step_name))
+            logging.error("Step {} has been defined twice".format(step.name))
 
-    def get_step(self, step_name: str) -> TutorialStep:
+    def get_step(self, step_name: str):
         return self.step_map.get(step_name)
 
     def add_transition(self, source_step_name: str, interaction: Interaction,
