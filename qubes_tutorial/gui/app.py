@@ -168,7 +168,7 @@ class TutorialUIDbusService(dbus.service.Object):
         self.current_task.update(task_number, task_description, on_ok, on_exit)
 
 
-class TutorialUIInterface:
+class TutorialWindow(Gtk.Window):
 
     def update(self, *args, **kwargs):
         """
@@ -183,7 +183,7 @@ class TutorialUIInterface:
         pass
 
 @Gtk.Template(filename=os.path.join(ui_dir, "current_task.ui"))
-class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
+class CurrentTaskInfo(TutorialWindow):
     """Current Task Information
 
     Shows the user information of the current task they're performing.
@@ -204,8 +204,12 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         super().__init__()
         self.set_keep_above(True)
         self.set_decorated(False)
+        self.connect_signals()
         self.hide() # starts hidden
         self.button_is_exit = False
+
+    def connect_signals(self):
+        self.button.connect('clicked', self.on_btn_pressed)
 
     def update(self, task_n, text, ok_callback, exit_callback):
         # becomes foreground when it is updated
@@ -239,7 +243,6 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         screen_height = primary_monitor.get_geometry().height
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
-    @Gtk.Template.Callback()
     def on_btn_pressed(self, button):
         if self.button_is_exit:
             self.exit_callback()
@@ -251,7 +254,7 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
 
 
 @Gtk.Template(filename=os.path.join(ui_dir, "step_information.ui"))
-class StepInformation(Gtk.Window, TutorialUIInterface):
+class StepInformation(TutorialWindow):
     __gtype_name__ = "StepInformation"
     ok_btn = Gtk.Template.Child()
     title = Gtk.Template.Child()
@@ -261,6 +264,10 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
         super().__init__()
         self.set_keep_above(True)
         self.set_decorated(False)
+        self.connect_signals()
+
+    def connect_signals(self):
+        self.ok_btn.connect('clicked', self.on_ok_btn_pressed)
 
     def update(self, title, text,
                align_horizontal="center", align_vertical="center",
@@ -276,7 +283,6 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
 
         self.align_vertical(align_horizontal, align_vertical)
 
-    @Gtk.Template.Callback()
     def on_ok_btn_pressed(self, button):
         self.ok_button_pressed_callback()
 
@@ -319,7 +325,7 @@ class StepInformation(Gtk.Window, TutorialUIInterface):
                             "'center' or 'bottom'")
         self.move(x, y)
 
-class StepInformationPointing(Gtk.Window, TutorialUIInterface):
+class StepInformationPointing(TutorialWindow):
     """
     Indicates information about the current step, but instead of having to be
     acknowledged by the user via an "OK" button, it directly points to
@@ -442,7 +448,7 @@ class StepInformationPointing(Gtk.Window, TutorialUIInterface):
 
 
 @Gtk.Template(filename=os.path.join(ui_dir, "modal.ui"))
-class ModalWindow(Gtk.Window, TutorialUIInterface):
+class ModalWindow(TutorialWindow):
     __gtype_name__ = "ModalWindow"
     modal_placeholder = Gtk.Template.Child()
     title_label = Gtk.Template.Child()
@@ -455,6 +461,11 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
         self.set_keep_above(True)
         self.set_decorated(False)
         self.create_backdrop()
+        self.connect_signals()
+
+    def connect_signals(self):
+        self.next_button.connect('clicked', self.on_next_button_pressed)
+        self.back_button.connect('clicked', self.on_back_button_pressed)
 
     def create_backdrop(self):
         """
@@ -523,12 +534,10 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
         screen_height = primary_monitor.get_geometry().height
         self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
-    @Gtk.Template.Callback()
     def on_next_button_pressed(self, button):
         self.next_button_callback()
         self.backdrop.hide()
 
-    @Gtk.Template.Callback()
     def on_back_button_pressed(self, button):
         self.back_button_callback()
         self.backdrop.hide()

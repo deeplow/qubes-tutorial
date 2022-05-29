@@ -2,7 +2,21 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="CurrentTaskInfo" parent="GtkWindow">
+  <template class="CurrentTaskInfo"><!-- parent="GtkWindow">-->
+  <!-- WARNING: If you are editing with Glade and see a message saying:
+
+        " FIXME: unable to create object with type..."
+
+    Then do the following: remove the comment marking so that the template has a
+    "GtkWindow" as a parent.
+
+    EXPLANATION: The parent value above will break if set. This is because in the
+    python code associated with this template it not directly a class of
+    Gtk.Window but rather one that inherits from it. If the parent is set it
+    will stop recognizing the template in the python side and if unset glade
+    will break.
+    https://docs.gtk.org/gtk3/class.Widget.html#building-composite-widgets-from-template-xml-composite-templates
+    -->
     <property name="can-focus">False</property>
     <property name="type-hint">dialog</property>
     <child>
@@ -85,4 +99,21 @@
       </object>
     </child>
   </template>
+  <object class="GtkWindow">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">&lt;b&gt;/!\ IF YOU ARE USING GLADE&lt;/b&gt;
+
+On the widget above you are probably seeing "FIXME".
+
+To edit this with Glade, you need to uncomment
+&lt;i&gt;parent="GtkWindow"&lt;/i&gt; from the source XML and then
+add it again in order to run the code.</property>
+        <property name="use-markup">True</property>
+      </object>
+    </child>
+  </object>
 </interface>
