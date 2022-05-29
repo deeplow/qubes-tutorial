@@ -424,6 +424,10 @@ class ModalWindow(Gtk.Window, TutorialUIInterface):
         self.back_button_callback = back_button_callback
         self.move_to_center()
         self.show_all()
+        if back_button_label:
+            self.back_button.set_visible(True)
+        else:
+            self.back_button.set_visible(False)
 
     def move_to_center(self):
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
