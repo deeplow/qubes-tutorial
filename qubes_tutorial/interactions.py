@@ -31,13 +31,11 @@ class CreateWindowInteraction(QubeInteraction):
         super().__init__("create-window", vm)
 
         self.id = dom0_window_id
-        utils.screenshot_window(self.id)
         self.title = utils.get_window_title(self.id)
 
     def gen_report(self):
         return [
                 "**[{}]** Window opened \"{}\"".format(self.vm, self.title),
-                "![]({}.png)".format(self.id)
                ]
 
 class CloseWindowInteraction(QubeInteraction):

@@ -79,33 +79,3 @@ def window_viewable(winid):
         return False
     else:
         return True
-
-def screenshot_window(dom0_window_id="0x0"):
-    """
-    Saves a screenshot of a particular window id
-    """
-    logging.debug("saving screenshot of {}".format(dom0_window_id))
-
-    try:
-
-        command = ["xwd", "-id", dom0_window_id]
-        xwd_data = subprocess.check_output(command, stderr=None)
-
-        with open("{}.xwd".format(dom0_window_id), 'wb') as f:
-                f.write(xwd_data)
-
-        command = ["convert",
-                "{}.xwd".format(dom0_window_id),
-                "{}.png".format(dom0_window_id)
-                ]
-
-        subprocess.check_output(command).decode()
-
-        command = ["rm", "{}.xwd".format(dom0_window_id)]
-
-        subprocess.check_output(command).decode()
-
-    except subprocess.CalledProcessError:
-        logging.error("failed to take screenshot of window \
-                    {} (probably unimportant)".format(dom0_window_id))
-
