@@ -114,13 +114,11 @@ class Tutorial:
     "Steps" are the nodes and "interactions" are the arcs
     """
 
-    create_mode = False
-
-    step_map = {} # maps a step's name to a step object
-
     def __init__(self, infile=None):
         if not infile:
             self.create_mode = True
+            self.step_map = {} # maps a step's name to a step object
+
 
     def _load(self, infile):
         # FIXME remove hardcoded
@@ -135,6 +133,7 @@ class Tutorial:
         if step.name not in self.step_map.keys():
             self.step_map[step.name] = step
         else:
+            raise TutorialDuplicateStepException(step.name)
             logging.error("Step {} has been defined twice".format(step.name))
 
     def get_step(self, step_name: str):
@@ -176,6 +175,16 @@ class Tutorial:
             return "node2"
         if node == "node2":
             return "end"
+
+class TutorialException(Exception):
+    def __init__(self, message="Exception occured in the tutorial."):
+        super().__init__(message)
+
+class TutorialDuplicateStepException(TutorialException):
+    def __init__(self, step_name: str):
+        message = "Step '{}' is duplicated".format(step_name)
+        super().__init__(message)
+
 
 if __name__ == "__main__":
     main()

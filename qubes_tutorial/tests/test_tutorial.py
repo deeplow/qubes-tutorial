@@ -14,3 +14,9 @@ class TestTutorial(unittest.TestCase):
             self.tutorial.get_step("step1"),
             step)
 
+    def test_add_step_twice(self):
+        step = tutorial.Step("step1")
+
+        self.tutorial.add_step(step)
+        self.assertRaises(tutorial.TutorialDuplicateStepException,
+                          self.tutorial.add_step, step)
