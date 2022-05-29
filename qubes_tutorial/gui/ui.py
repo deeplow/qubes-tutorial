@@ -127,7 +127,15 @@ class ModalWindow(Gtk.Window):
         self.next_button_callback = next_button_callback
         self.back_button.set_label(back_button_label)
         self.back_button_callback = back_button_callback
+        self.move_to_center()
         self.show_all()
+
+    def move_to_center(self):
+        self.set_gravity(Gdk.Gravity.SOUTH_EAST)
+        (widget_width, widget_height) = self.get_size()
+        screen_width    = self.get_screen().width()
+        screen_height = self.get_screen().height()
+        self.move(screen_width/2 - widget_width/2, screen_height/2 - widget_height/2)
 
     @Gtk.Template.Callback()
     def on_next_button_pressed(self, button):
