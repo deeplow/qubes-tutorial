@@ -139,6 +139,15 @@ class Step:
     def is_last(self):
         return self.name == "end"
 
+    def is_new_task(self):
+        # FIXME find better way. This violates the separation of concerns
+        if self.ui_dict:
+            for ui_item in self.ui_dict:
+                ui_type = ui_item['type']
+                if ui_type == 'new_task':
+                    return True
+        return False
+
     def add_transition(self, interaction: str, target_step):
         if self.has_transition(interaction):
             raise TutorialDuplicateTransitionException(self, target_step)
@@ -264,6 +273,14 @@ class Tutorial:
         for step in self.get_steps():
             for extension in step.get_extensions():
                 self.enable_extension(extension)
+
+        # count num tasks (assumes tutorial linearity)
+        num_tasks = 0
+        for step in self.get_steps():
+            if step.is_new_task():
+                num_tasks += 1
+        set_num_tasks = get_ui_proxy_method('set_num_tasks')
+        set_num_tasks(num_tasks)
 
     def load_as_file(self, file_path):
         if file_path.endswith("yaml") or file_path.endswith("yml"):

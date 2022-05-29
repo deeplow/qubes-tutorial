@@ -55,6 +55,10 @@ class TutorialUIDbusService(dbus.service.Object):
         self.enabled_widgets = []
 
     @dbus.service.method('org.qubes.tutorial.ui')
+    def set_num_tasks(self, num_tasks):
+        self.current_task.set_num_tasks(num_tasks)
+
+    @dbus.service.method('org.qubes.tutorial.ui')
     def setup_ui(self, ui_dict):
         self.event_q.put(ui_dict)
         GLib.idle_add(self.update_ui)
@@ -243,6 +247,7 @@ class CurrentTaskInfo(TutorialWindow):
         self.connect_signals()
         self.state = self.STATE_CENTER
         self.task_num = 0
+        self.num_tasks = 0
 
     def connect_signals(self):
         self.button.connect('clicked', self.on_btn_pressed)
@@ -250,7 +255,7 @@ class CurrentTaskInfo(TutorialWindow):
     def update(self, text, ok_callback, exit_callback):
         self.text.set_label(text)
         self.task_num = self.task_num + 1
-        self.title.set_label("Task {}".format(self.task_num))
+        self.title.set_label(f"Task {self.task_num}")
 
         # becomes foreground when it is updated
         self.move_to_center()
@@ -265,8 +270,8 @@ class CurrentTaskInfo(TutorialWindow):
         # FIXME add "(last one)" when it's the last
         # FIXME add "X of Y" so users can keep track of progress
 
-    def teardown(self):
-        self.task_num = 0
+    def set_num_tasks(self, num_tasks):
+        self.num_tasks = num_tasks
 
     def move_to_center(self):
         self.state = self.STATE_CENTER
@@ -278,6 +283,7 @@ class CurrentTaskInfo(TutorialWindow):
         always glance down to see the task description or exit the tutorial
         """
         self.state = self.STATE_CORNER
+        self.title.set_label(f"Task {self.task_num} of {self.num_tasks}")
         self.button.get_style_context().remove_class("blue_button")
         self.button.set_label("exit tutorial")
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
