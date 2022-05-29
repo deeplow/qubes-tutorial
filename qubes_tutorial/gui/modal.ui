@@ -2,7 +2,8 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="ModalWindow" parent="GtkWindow">
+  <object class="GtkWindow" id="modal_window">
+    <property name="name">modal_window</property>
     <property name="can-focus">False</property>
     <property name="resizable">False</property>
     <property name="default-width">800</property>
@@ -111,12 +112,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="CustomModal" id="_custom_modal">
+              <object class="GtkBox" id="modal_placeholder">
+                <placeholder/>
               </object>
-              <packing>
-                <property name="name">page1</property>
-                <property name="title">page1</property>
-              </packing>
             </child>
           </object>
           <packing>
@@ -194,5 +192,5 @@ do later&lt;/u&gt;</property>
         </style>
       </object>
     </child>
-  </template>
+  </object>
 </interface>

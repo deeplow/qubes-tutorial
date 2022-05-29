@@ -2,13 +2,14 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
-  <template class="CustomModal" parent="GtkBox">
+  <object class="GtkBox" id="custom_modal">
+    <property name="name">step_1</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <property name="halign">center</property>
     <property name="orientation">vertical</property>
     <child>
-        <object class="GtkImage">
+      <object class="GtkImage">
         <property name="name">glade-brand-image</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
@@ -18,16 +19,16 @@
         <property name="ypad">3</property>
         <property name="pixbuf">images/qubes-logo.png</property>
         <property name="pixel-size">250</property>
-        </object>
-        <packing>
+      </object>
+      <packing>
         <property name="expand">True</property>
         <property name="fill">True</property>
         <property name="padding">17</property>
         <property name="position">0</property>
-        </packing>
+      </packing>
     </child>
     <child>
-        <object class="GtkLabel" id="version_label">
+      <object class="GtkLabel" id="version_label">
         <property name="name">version-label</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
@@ -42,12 +43,12 @@
         <property name="wrap">True</property>
         <property name="width-chars">32</property>
         <property name="max-width-chars">32</property>
-        </object>
-        <packing>
+      </object>
+      <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="position">2</property>
-        </packing>
+      </packing>
     </child>
-  </template>
+  </object>
 </interface>
