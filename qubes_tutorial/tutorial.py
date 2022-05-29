@@ -41,7 +41,7 @@ def main():
         create_tutorial(args.create, scope, interactions_q)
     else:
         tutorial = Tutorial("tutorial.tut") # FIXME remove hardcoded
-        start_tutorial(tutorial, scope, interactions_q)
+        start_tutorial(tutorial, interactions_q)
 
     watchers.stop_watchers(scope)
 
