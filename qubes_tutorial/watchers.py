@@ -45,17 +45,17 @@ def start_interaction_logger(scope, interactions_q):
     interactor_thread = threading.Thread(target=interactor.run, daemon=True)
     interactor_thread.start()
 
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(run())
-    finally:
-        loop.close()
+    #loop = asyncio.get_event_loop()
+    #try:
+    #    loop.run_until_complete(run())
+    #finally:
+    #    loop.close()
 
 
-async def run():
-    pass
-    #async for i in ticker(1, 10):
-    #    print(i)
+#async def run():
+#    pass
+#    #async for i in ticker(1, 10):
+#    #    print(i)
 
 def stop_interaction_logger(scope: list):
     for vm in scope:
