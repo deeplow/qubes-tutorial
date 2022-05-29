@@ -17,7 +17,6 @@ from gi.repository import GLib
 
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
-from qubes_tutorial.interactions import Interaction
 
 interactions = []
 
@@ -95,13 +94,13 @@ class Step:
     def is_last(self):
         return self.name == "end"
 
-    def add_transition(self, interaction: Interaction, target_step):
+    def add_transition(self, interaction: str, target_step):
         if self.has_transition(interaction):
             raise TutorialDuplicateTransitionException(self, target_step)
 
         self.transitions[interaction] = target_step
 
-    def has_transition(self, interaction: Interaction):
+    def has_transition(self, interaction: str):
         for tentative_interaction in self.transitions.keys():
             if interaction == tentative_interaction:
                 return True
@@ -116,9 +115,9 @@ class Step:
     def get_possible_interactions(self):
         return self.transitions.keys()
 
-    def next(self, interaction: Interaction):
+    def next(self, interaction: str):
         for possible_interaction in self.transitions.keys():
-            if possible_interaction == interaction: # FIXME in the future check if is subset
+            if possible_interaction == interaction:
                 return self.transitions.get(possible_interaction)
         return None
 
@@ -199,7 +198,6 @@ class Tutorial:
             for transition in step_data['transitions']:
                 next_step = self.get_step(transition['step'])
                 interaction = transition['interaction']
-                interaction = Interaction(interaction)
                 self.add_transition(current_step, interaction, next_step)
 
         self.check_integrity()
@@ -280,7 +278,7 @@ class Tutorial:
             logging.info('currently on step "{}"'.format(self.current_step.name))
 
             interaction = self.interactions_q.get()
-            logging.info("processed interaction " + str(interaction))
+            logging.info("processed interaction " + interaction)
 
             if not self.current_step.has_transition(interaction):
                 logging.debug("interaction does not transition")
@@ -314,7 +312,7 @@ class Tutorial:
     def get_steps(self):
         return self.step_map.values()
 
-    def add_transition(self, source_step: Step, interaction: Interaction,
+    def add_transition(self, source_step: Step, interaction: str,
                        target_step: Step) -> None:
 
         if not source_step:
@@ -328,7 +326,7 @@ class Tutorial:
 
         source_step.add_transition(interaction, target_step)
 
-    def has_transition(self, source_step_name: str, interaction: Interaction, target_step_name: str) -> bool:
+    def has_transition(self, source_step_name: str, interaction: str, target_step_name: str) -> bool:
         source_step = self.get_step(source_step_name)
 
         if source_step:
@@ -336,7 +334,7 @@ class Tutorial:
         else:
             return False
 
-    def get_next(self, node: str, interaction: Interaction) -> str:
+    def get_next(self, node: str, interaction: str) -> str:
         if node == "start":
             return "node1"
         if node == "node1":
@@ -407,9 +405,8 @@ class TutorialInteractionsListener(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, '/')
 
     @dbus.service.method('org.qubes.tutorial.interactions')
-    def register_interaction(self, interaction_str):
-        logging.info("Registered interaction " + str(interaction_str))
-        interaction = Interaction(interaction_str)
+    def register_interaction(self, interaction):
+        logging.info("Registered interaction " + interaction)
         self.interactions_q.put(interaction)
         return "registered interaction"
 
