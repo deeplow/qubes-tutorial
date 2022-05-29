@@ -64,6 +64,9 @@ class TutorialUIDbusService(dbus.service.Object):
     def teardown_ui(self):
         logging.info("processing UI teardown")
         for widget in self.enabled_widgets:
+            if widget == self.current_task:
+                # current task is always on-screen
+                continue
             widget.teardown()
             widget.hide()
             self.enabled_widgets.remove(widget)
@@ -235,7 +238,7 @@ class CurrentTaskInfo(Gtk.Window, TutorialUIInterface):
         if self.button_is_exit:
             self.exit_callback()
         else: # OK button
-            self.button.get_style_context().remove_class("highlighted")
+            self.button.get_style_context().remove_class("blue_button")
             self.button.set_label("exit tutorial")
             self.move_to_corner()
             self.ok_callback()
