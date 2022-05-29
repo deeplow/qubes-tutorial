@@ -18,8 +18,6 @@ from gi.repository import GLib
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
 
-interactions = []
-
 def start_tutorial(tutorial_path):
     try:
         print("staring ui as separate process...")
