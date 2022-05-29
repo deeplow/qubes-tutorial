@@ -184,6 +184,7 @@ class Tutorial:
 
     def __init__(self, interactions_q=None):
         self.tutorial_dir = None
+        self.extensions = set()
         self.step_map = OrderedDict() # maps a step's name to a step object
         if interactions_q is None:
             self.interactions_q = Queue()
@@ -237,8 +238,17 @@ class Tutorial:
                         step_data.get('setup'),
                         step_data.get('teardown'))
             self.add_step(step)
-
         self.add_step(Step('end'))
+
+        # enable all tutorial extensions necessary
+        for step_data in steps_data:
+            setup_dict = step_data.get('setup', {})
+            for item in setup_dict:
+                component_name  = item['component']
+                if component_name == 'dom0':
+                    continue
+                else:
+                    self.enable_extension(component_name)
 
         # add all transitions (edges)
         for step_data in steps_data:
@@ -300,6 +310,27 @@ class Tutorial:
             tutorial_text = self.save_as_text()
             outfile.write(json.dumps(tutorial_text))
 
+    def enable_extension(self, extension):
+        if extension in self.extensions:
+            return
+        logging.info(f"enabling extension {extension}")
+        try:
+            extensions.enable_extension(extension)
+            self.extensions.add(extension)
+        except:
+            raise Exception(f"Couldn't enable extension '{extension}'."
+                            + " Maybe it's not running?")
+
+    def disable_extensions(self):
+        for extension in self.extensions.copy():
+            try:
+                logging.info(f"disabling extension {extension}")
+                extensions.disable_extension(extension)
+                self.extensions.remove(extension)
+            except:
+                raise Exception(f"Couldn't disable extension '{extension}'."
+                                + " Maybe it's not running?")
+
     def start(self):
         """
         Plays the tutorial
@@ -342,7 +373,7 @@ class Tutorial:
             next_step = self.current_step.next(interaction)
             if next_step.is_last():
                 # TODO close UI process
-                # TODO disable tutorial in components
+                self.disable_extensions()
                 exit()
             else:
                 logging.info('now on step "{}"'.format(self.current_step.name))

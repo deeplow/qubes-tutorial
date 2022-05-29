@@ -52,6 +52,16 @@ def get_extension_method(component, method_name):
                 .get_dbus_method(method_name, interface_name)
     return proxy
 
+def enable_extension(component_name):
+    enable_extension_proxy = \
+        get_extension_method(component_name, "enable_tutorial")
+    enable_extension_proxy()
+
+def disable_extension(component_name):
+    disable_extension_proxy = \
+        get_extension_method(component_name, "disable_tutorial")
+    disable_extension_proxy()
+
 def _get_bus_name_from_component_name(component_name):
     return f"{EXT_INTERFACE_NAME}.{component_name}"
 
@@ -77,16 +87,40 @@ class TutorialExtension(dbus.service.Object):
         return cls
 
     def __init__(self, component_name):
+        self.component_name = component_name
+        self.start_dbus_service()
+        self.do_methods_as_dbus_services = False
+
+    def start_dbus_service(self):
+        DBusGMainLoop(set_as_default=True)
+        bus_name = _get_bus_name_from_component_name(self.component_name)
+        bus = dbus.service.BusName(bus_name, bus=dbus.SessionBus())
+        dbus.service.Object.__init__(self, bus, EXT_OBJ_PATH)
+
+    @dbus.service.method(EXT_INTERFACE_NAME)
+    def enable_tutorial(self):
         # FIXME find better way than globals
         global tutorial_enabled
         tutorial_enabled = True
+        if not self.do_methods_as_dbus_services:
+            self.do_methods_as_dbus_services = True
+            self.make_do_methods_dbus_services()
 
-        DBusGMainLoop(set_as_default=True)
-        self.make_do_methods_dbus_services()
+    @dbus.service.method(EXT_INTERFACE_NAME)
+    def disable_tutorial(self):
+        global tutorial_enabled
+        tutorial_enabled = False
+        self.cleanup()
+        # TODO find way to remove do_* dbus methods
+        # using self.remove_from_connection() doesn't solve it since it woul
+        # also remove the
 
-        bus_name = _get_bus_name_from_component_name(component_name)
-        bus = dbus.service.BusName(bus_name, bus=dbus.SessionBus())
-        dbus.service.Object.__init__(self, bus, EXT_OBJ_PATH)
+    def cleanup(self):
+        """
+        Abstract method to add functions to remove the tutorial
+        modifications to the component
+        """
+        pass
 
 
 class GtkTutorialExtension(TutorialExtension):
