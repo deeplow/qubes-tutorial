@@ -242,7 +242,6 @@ class CurrentTaskInfo(TutorialWindow):
     def __init__(self):
         super().__init__()
         self.connect_signals()
-        self.hide() # starts hidden
         self.state = self.STATE_CENTER
 
     def connect_signals(self):
