@@ -103,13 +103,14 @@ class GuidLogWatcher(LogWatcher):
         dom0_window_id = re.search("0x[0-9a-f]+", line).group()
         logging.debug("Created window (id: {})".format(dom0_window_id))
 
-        if "x/y -100/-100" in line:
-            # Hidden windows (TODO understand)
-            #   these are windows of the whole VM's screen
-            pass
-        elif not utils.window_viewable(dom0_window_id):
+        if not utils.window_viewable(dom0_window_id):
             logging.error("ignoring window {} \
                 (not viewable)".format(dom0_window_id))
+        #elif "x/y -100/-100" in line:
+            # Hidden windows (TODO understand)
+            #   these are windows of the whole VM's screen
+            #logging.debug("Hidden Window... ignoring (id: {})"\
+            #    .format(dom0_window_id))
         else:
             time.sleep(0.1) # give window time to fully setup
             self.interactions_q.put(CreateWindowInteraction(self.vm, dom0_window_id))
