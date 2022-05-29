@@ -37,7 +37,7 @@ Provides:   qubes-tutorial = %{version}-%{release}
 
 %install
 %py3_install
-make install DESTDIR=$RPM_BUILD_ROOT
+make install-dom0 DESTDIR=$RPM_BUILD_ROOT
 
 %files
 %dir %{python3_sitelib}/qubes_tutorial-*.egg-info
@@ -65,11 +65,11 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %{python3_sitelib}/qubes_tutorial/tests/__pycache__/*
 %{python3_sitelib}/qubes_tutorial/tests/*.py
 
-# FIXME place images in %{_datadir}/
+# FIXME place images in _datadir/
 %dir %{python3_sitelib}/qubes_tutorial/gui/images/
 %{python3_sitelib}/qubes_tutorial/gui/images/alpha_1px.png
 
-# FIXME place tutorial in %{_datadir}/
+# FIXME place tutorial in _datadir/
 %dir %{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/
 %{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/images/*
 %{python3_sitelib}/qubes_tutorial/included_tutorials/onboarding/step_1.ui
