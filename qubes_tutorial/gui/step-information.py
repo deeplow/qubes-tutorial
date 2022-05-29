@@ -29,6 +29,9 @@ class StepIndicator(Gtk.Window):
         self._create_popover(text)
         self._position_on_screen(x, y)
 
+        self.show_all()
+        self._make_clickthrough()
+
     def _position_on_screen(self, x, y):
         """ Positions popover arrow over specified point """
 
@@ -137,5 +140,18 @@ class StepIndicator(Gtk.Window):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-StepIndicator("Some random text here", 0, 0).show_all()
+    def _make_clickthrough(self):
+        """ Make window clickthrough
+
+        Only works after widget.show_all()
+        """
+
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 0 , 0)
+        surface_ctx = cairo.Context(surface)
+        region = Gdk.cairo_region_create_from_surface(surface)
+        self.input_shape_combine_region(region)
+
+
+win = StepIndicator("Some random text here", 0, 0)
+
 Gtk.main()
