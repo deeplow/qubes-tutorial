@@ -1,6 +1,9 @@
 import argparse
+import asyncio
 from collections import OrderedDict
 import dbus
+import dbus.service
+from dbus.mainloop.glib import DBusGMainLoop
 import json
 import yaml
 import logging
@@ -9,6 +12,8 @@ import os
 import sys
 import subprocess
 import time
+
+from gi.repository import GLib
 
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
@@ -23,7 +28,6 @@ def start_tutorial(tutorial_path):
         import qubes_tutorial.app
         parent_module_path =  os.path.dirname(os.path.dirname(
                                 os.path.realpath(qubes_tutorial.app.__file__)))
-
         ui = subprocess.Popen(
             ["python3", "-m", qubes_tutorial.app.__name__,
                         "--dir", tutorial_dir_path],
@@ -33,10 +37,10 @@ def start_tutorial(tutorial_path):
         # start controller only after UI initializes
         time.sleep(0.2)
         print("staring controller...")
-
         tutorial = Tutorial()
         tutorial.load_as_file(tutorial_path)
         tutorial.start()
+
     finally:
         ui.kill()
 
@@ -71,7 +75,7 @@ class Step:
         self.transitions = OrderedDict() # map: interaction -> step
         self.ui_dict = ui_dict
 
-    def setup(self, interactions_q):
+    def setup(self):
         """
         Initialize the step
         """
@@ -135,9 +139,23 @@ class Tutorial:
     "Steps" are the nodes and "interactions" are the arcs
     """
 
-    def __init__(self):
+    def __init__(self, interactions_q=None):
         self.tutorial_dir = None
         self.step_map = OrderedDict() # maps a step's name to a step object
+        if interactions_q is None:
+            self.interactions_q = Queue()
+        else:
+            self.interactions_q = interactions_q
+        TutorialInteractionsListener(self.interactions_q)
+
+        # setup tutorial loop
+        #   Currently dbus-python only supports Glib event loop (can't have our own)
+        #   https://dbus.freedesktop.org/doc/dbus-python/tutorial.html#setting-up-an-event-loop
+        #
+        #   Given that we use dbus to handle interactions, we have to use GLib.
+        self.loop = asyncio.SelectorEventLoop()
+        asyncio.set_event_loop(self.loop)
+        self.main_context = GLib.MainContext.default()
 
     def check_integrity(self):
         """
@@ -233,32 +251,49 @@ class Tutorial:
             tutorial_text = self.save_as_text()
             outfile.write(json.dumps(tutorial_text))
 
-    def start(self, interactions_q=None):
+    def start(self):
         """
         Plays the tutorial
         """
         logging.info("starting tutorial")
 
-        if interactions_q is None:
-            interactions_q = Queue()
-        watchers.start_interaction_logger(self.get_scope(), interactions_q)
+        self.current_step = self.get_first_step()
+        self.current_step.setup()
 
-        # TODO global logs monitoring
+        #watchers.start_interaction_logger(self.get_scope(), interactions_q)
+        self.glib_update(self.main_context, self.loop)
+        self.loop.run_forever()
 
-        step = self.get_first_step()
-        while not step.is_last():
-            logging.info('currently on step "{}"'.format(step.name))
-            step.setup(interactions_q)
-            interaction = interactions_q.get(block=True)
+    def stop_loop(self):
+        self.loop.close()
+        #watchers.stop_interaction_logger(self.get_scope())
 
-            if not step.has_transition(interaction):
+    def glib_update(self, main_context, loop):
+        while main_context.pending():
+            main_context.iteration(False)
+
+        self.process_interactions()
+        self.loop.call_later(.01, self.glib_update, main_context, loop)
+
+    def process_interactions(self):
+        while not self.interactions_q.empty():
+            logging.info('currently on step "{}"'.format(self.current_step.name))
+
+            interaction = self.interactions_q.get()
+            logging.info("processed interaction " + str(interaction))
+
+            if not self.current_step.has_transition(interaction):
                 logging.debug("interaction does not transition")
                 continue
 
-            step = step.next(interaction)
-            time.sleep(1)
+            next_step = self.current_step.next(interaction)
+            if next_step.is_last():
+                pass # FIXME do something
+            else:
+                self.current_step = next_step
 
-        watchers.stop_interaction_logger(self.get_scope())
+                # FIXME add the following to GLib idle
+                self.current_step.setup()
 
     def add_step(self, step: Step) -> None:
         if step.name not in self.step_map.keys():
@@ -357,6 +392,25 @@ class TutorialDuplicateTransitionException(TutorialException):
         message = "Step '{}' already has a transition to step '{}'".\
             format(source_step.name, target_step.name)
         super().__init__(message)
+
+class TutorialInteractionsListener(dbus.service.Object):
+
+    def __init__(self, interactions_q):
+        self.interactions_q = interactions_q
+
+        # start dbus loop
+        DBusGMainLoop(set_as_default=True)
+
+        # setup dbus for listening for events
+        bus_name = dbus.service.BusName("org.qubes.tutorial.interactions",
+                                        bus=dbus.SessionBus())
+        dbus.service.Object.__init__(self, bus_name, '/')
+
+    @dbus.service.method('org.qubes.tutorial.interactions')
+    def register_interaction(self, interaction):
+        logging.info("Registered interaction " + str(interaction))
+        self.interactions_q.put(interaction)
+        return "registered interaction"
 
 
 def main():
