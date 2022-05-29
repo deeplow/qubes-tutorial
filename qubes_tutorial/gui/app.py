@@ -81,6 +81,7 @@ class TutorialUIDbusService(dbus.service.Object):
     def process_ui_change(self, ui_dict):
         logging.info("processing some UI change")
         logging.info(ui_dict)
+        new_task = False
 
         for ui_item_dict in ui_dict:
             ui_type = ui_item_dict['type']
@@ -94,6 +95,7 @@ class TutorialUIDbusService(dbus.service.Object):
                 self.setup_ui_step_information_pointing(ui_item_dict)
                 self.enabled_widgets += [self.step_info_pointing]
             elif ui_type == "current_task":
+                new_task = True
                 self.setup_ui_current_task(ui_item_dict)
                 self.enabled_widgets += [self.current_task]
             elif ui_type == "none":
@@ -101,6 +103,9 @@ class TutorialUIDbusService(dbus.service.Object):
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))
+
+        if not new_task:
+            self.current_task.move_to_corner()
 
     def setup_ui_modal(self, ui_item_dict: dict):
         logging.debug("setting up ui modal")
@@ -231,11 +236,14 @@ class CurrentTaskInfo(TutorialWindow):
     title = Gtk.Template.Child()
     text = Gtk.Template.Child()
 
+    STATE_CENTER = enum.auto()
+    STATE_CORNER = enum.auto()
+
     def __init__(self):
         super().__init__()
         self.connect_signals()
         self.hide() # starts hidden
-        self.button_is_exit = False
+        self.state = self.STATE_CENTER
 
     def connect_signals(self):
         self.button.connect('clicked', self.on_btn_pressed)
@@ -256,17 +264,27 @@ class CurrentTaskInfo(TutorialWindow):
         # FIXME add "(last one)" when it's the last
         # FIXME add "X of Y" so users can keep track of progress
 
+    def move_to_center(self):
+        self.state = self.STATE_CENTER
+        super().move_to_center()
+
     def move_to_corner(self):
+        """
+        Moves the current task information to the corner so that the user can
+        always glance down to see the task description or exit the tutorial
+        """
+        self.state = self.STATE_CORNER
+        self.button.get_style_context().remove_class("blue_button")
+        self.button.set_label("exit tutorial")
         self.set_gravity(Gdk.Gravity.SOUTH_EAST)
         (widget_width, widget_height) = self.get_size()
-        self.move(self.screen_width - widget_width, self.screen_height - widget_height)
+        self.move(self.screen_width  - widget_width,
+                  self.screen_height - widget_height)
 
     def on_btn_pressed(self, button):
-        if self.button_is_exit:
+        if self.state == self.STATE_CORNER:
             self.exit_callback()
-        else: # OK button
-            self.button.get_style_context().remove_class("blue_button")
-            self.button.set_label("exit tutorial")
+        else:
             self.move_to_corner()
             self.ok_callback()
 
