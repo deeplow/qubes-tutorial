@@ -1,22 +1,44 @@
-import logging
-import sys
-import os
-from queue import Queue
-import yaml
-import json
+import argparse
 from collections import OrderedDict
+import dbus
+import json
+import yaml
+import logging
+from queue import Queue
+import os
+import sys
+import subprocess
 import time
-
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject
 
 import qubes_tutorial.utils as utils
 import qubes_tutorial.watchers as watchers
 from qubes_tutorial.interactions import Interaction
-import qubes_tutorial.gui.ui as ui
 
 interactions = []
+
+def start_tutorial(tutorial_path):
+    try:
+        print("staring ui as separate process...")
+        tutorial_dir_path = os.path.dirname(tutorial_path)
+        import qubes_tutorial.app
+        parent_module_path =  os.path.dirname(os.path.dirname(
+                                os.path.realpath(qubes_tutorial.app.__file__)))
+
+        ui = subprocess.Popen(
+            ["python3", "-m", qubes_tutorial.app.__name__,
+                        "--dir", tutorial_dir_path],
+            cwd=parent_module_path
+        )
+
+        # start controller only after UI initializes
+        time.sleep(0.2)
+        print("staring controller...")
+
+        tutorial = Tutorial()
+        tutorial.load_as_file(tutorial_path)
+        tutorial.start()
+    finally:
+        ui.kill()
 
 def create_tutorial(outfile, scope):
     interactions_q = Queue()
@@ -40,27 +62,25 @@ def create_tutorial(outfile, scope, interactions_q):
     except KeyboardInterrupt:
         utils.gen_report(interactions_q)
 
-def init_gui():
-    pass
-
 
 class Step:
     """ Represents a current step in a tutorial """
 
-    def __init__(self, name: str, ui_dict: dict=None, tutorial_base_dir=None):
+    def __init__(self, name: str, ui_dict: dict=None):
         self.name = name
         self.transitions = OrderedDict() # map: interaction -> step
-        if ui_dict:
-            self.ui = StepUI(ui_dict, tutorial_base_dir)
-        else:
-            self.ui = None
+        self.ui_dict = ui_dict
 
     def setup(self, interactions_q):
         """
         Initialize the step
         """
-        if self.ui:
-            self.ui.setup_ui(interactions_q)
+
+        # Sends a notification to the tutorial UI that it should update
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
+        setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
+        logging.info(setup_ui(self.ui_dict))
 
     def get_name(self):
         return self.name
@@ -105,55 +125,6 @@ class Step:
 
         return dump
 
-class StepUI:
-    """
-    User interface to be displayed in a step
-    """
-    def __init__(self, ui_dict, tutorial_dir):
-        if ui_dict is None:
-            return
-        self.ui_dict = ui_dict
-        self.tutorial_dir = tutorial_dir
-
-    def setup_ui(self, interactions_q):
-        for ui_item_dict in self.ui_dict:
-            ui_type = ui_item_dict['type']
-
-            if ui_type == "modal":
-                self._setup_ui_modal(ui_item_dict, interactions_q)
-            elif ui_type == "step_information":
-                self._setup_ui_step_information(ui_item_dict, interactions_q)
-            else:
-                raise Exception("UI of type '{}' not recognized.".format(
-                    ui_type))
-
-    def _setup_ui_modal(self, ui_item_dict, interactions_q):
-
-        def on_next_button_pressed():
-            interactions_q.put(Interaction("click main button"))
-
-        def on_back_button_pressed():
-            interactions_q.put(Interaction("click secondary button"))
-
-        template = ui_item_dict['template']
-        template_path = os.path.join(self.tutorial_dir, template)
-        title = ui_item_dict.get('title')
-        next_button_label = ui_item_dict.get('next_button')
-        back_button_label = ui_item_dict.get('back_button')
-        window = ui.ModalWindow(template_path, title,
-                    next_button_label, on_next_button_pressed,
-                    back_button_label, on_back_button_pressed)
-        window.show_all()
-        Gtk.main()
-
-    def _setup_ui_step_information(self, ui_item_dict, interactions_q):
-
-        def on_ok_button_pressed():
-            interactions_q.put(Interaction("click OK"))
-
-        title = ui_item_dict.get('title')
-        text  = ui_item_dict.get('text')
-        ui.setup_step_information(title, text, on_ok_button_pressed)
 
 class Tutorial:
     """ Represents a tutorial's steps and their transitions
@@ -200,7 +171,7 @@ class Tutorial:
         # create all steps (nodes)
         steps = []
         for step_data in steps_data:
-            step = Step(step_data['name'], step_data['ui'], self.tutorial_dir)
+            step = Step(step_data['name'], step_data['ui'])
             self.add_step(step)
         self.add_step(Step('end'))
 
@@ -386,3 +357,43 @@ class TutorialDuplicateTransitionException(TutorialException):
         message = "Step '{}' already has a transition to step '{}'".\
             format(source_step.name, target_step.name)
         super().__init__(message)
+
+
+def main():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(message)s')
+
+    parser = argparse.ArgumentParser(
+            description='Integrated tutorials tool for Qubes OS')
+
+    action_group = parser.add_mutually_exclusive_group(required=True)
+    action_group.add_argument('--create', '-c',
+                        type=argparse.FileType('w', encoding='UTF-8'),
+                        metavar="FILE",
+                        help='Create a tutorial')
+
+    action_group.add_argument('--load', '-l',
+                        type=str,
+                        metavar="FILE",
+                        help='Load a tutorial from a .yaml or literate .md.'\
+                            + "\nFor example 'qubes_tutorial/included_tutorials/onboarding-tutorial-1/README.md'")
+
+    parser.add_argument('--scope', '-s',
+                        type=str,
+                        help='qubes affected (e.g. --scope=personal,work)')
+
+    args = parser.parse_args()
+
+    scope = list()
+    if args.scope:
+        scope = [x.strip() for x in args.scope.split(",")]
+
+    if args.create:
+        create_tutorial(args.create, scope)
+    elif args.load:
+        start_tutorial(args.load)
+
+
+if __name__ == '__main__':
+    main()

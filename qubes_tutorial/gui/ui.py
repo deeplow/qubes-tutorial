@@ -26,10 +26,9 @@ class ModalWindow(Gtk.Window):
     next_button = Gtk.Template.Child()
     back_button = Gtk.Template.Child()
 
-    def __init__(self, step_ui_path, title,
+    def update(self, step_ui_path, title,
                  next_button_label, next_button_callback,
                  back_button_label=None, back_button_callback=None):
-        super().__init__()
 
         custom_information = Gtk.Builder()
         custom_information.add_from_file(step_ui_path)
@@ -44,16 +43,8 @@ class ModalWindow(Gtk.Window):
 
     @Gtk.Template.Callback()
     def on_next_button_pressed(self, button):
-        self.hide()
-        # quit in order to unblock thread
-        # FIXME implement non-blocking UI
-        Gtk.main_quit()
         self.next_button_callback()
 
     @Gtk.Template.Callback()
     def on_back_button_pressed(self, button):
-        self.hide()
-        # quit in order to unblock thread
-        # FIXME implement non-blocking UI
-        Gtk.main_quit()
         self.back_button_callback()
