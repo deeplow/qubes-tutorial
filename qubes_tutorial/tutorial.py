@@ -171,11 +171,12 @@ class Tutorial:
 
         # add all transitions (edges)
         for step_data in steps_data:
-            step = self.get_step(step_data['name'])
+            current_step = self.get_step(step_data['name'])
             for transition in step_data['transitions']:
                 next_step = self.get_step(transition['step'])
                 interaction_type = transition['interaction_type']
                 interaction = Interaction(interaction_type)
+                self.add_transition(current_step, interaction, next_step)
 
         self.check_integrity()
 
@@ -185,7 +186,6 @@ class Tutorial:
         elif file_path.endswith("md"):
             self._load_as_file_literate_yaml(file_path)
         else:
-            import pudb; pu.db
             raise Exception("File not found: {}".format(file_path))
 
     def _load_as_file_yaml(self, file_path):
@@ -225,13 +225,14 @@ class Tutorial:
             tutorial_text = self.save_as_text()
             outfile.write(json.dumps(tutorial_text))
 
-    def start(self):
+    def start(self, interaction_q=None):
         """
         Plays the tutorial
         """
         logging.info("starting tutorial")
 
-        interactions_q = Queue()
+        if interaction_q is None:
+            interactions_q = Queue()
         watchers.start_interaction_logger(self.get_scope(), interactions_q)
 
         # TODO global logs monitoring
@@ -263,26 +264,22 @@ class Tutorial:
     def get_step(self, step_name: str):
         return self.step_map.get(step_name)
 
-    def add_transition(self, source_step_name: str, interaction: Interaction,
-                       target_step_name: str) -> None:
-
-        source_step = self.step_map.get(source_step_name)
-        target_step = self.step_map.get(target_step_name)
+    def add_transition(self, source_step: Step, interaction: Interaction,
+                       target_step: Step) -> None:
 
         if not source_step:
             logging.error("Source step {} need to be created before\
-                trying to add interaction to it".format(source_step_name))
+                trying to add interaction to it".format(source_step.get_name()))
             return
         elif not target_step:
             logging.error("Target step {} need to be created before\
-                trying to add interaction to it".format(target_step_name))
+                trying to add interaction to it".format(target_step.get_name()))
             return
 
         source_step.add_transition(interaction, target_step)
         target_step.add_transition(interaction, source_step)
 
 
-    """
     def has_transition(self, source_step_name: str, interaction: Interaction, target_step_name: str) -> bool:
         source_step = self.get_step(source_step_name)
 
@@ -290,7 +287,6 @@ class Tutorial:
             return source_step.has_transition(interaction, target_step_name)
         else:
             return False
-    """
 
     def get_next(self, node: str, interaction: Interaction) -> str:
         if node == "start":
