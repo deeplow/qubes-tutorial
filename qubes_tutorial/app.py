@@ -96,6 +96,8 @@ class TutorialUI(dbus.service.Object):
                 self.setup_ui_step_information(ui_item_dict)
             elif ui_type == "current_task":
                 self.setup_ui_current_task(ui_item_dict)
+            elif ui_type == "none":
+                pass
             else:
                 raise Exception("UI of type '{}' not recognized.".format(
                     ui_type))

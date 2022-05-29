@@ -116,12 +116,19 @@ class Step:
         show_path_to_app(vm_name, app_name, override_exec_str)
 
     def setup_ui(self):
+        """
+        Sends a notification to the tutorial UI that it should update
+        """
+        bus = dbus.SessionBus()
+        proxy = bus.get_object('org.qubes.tutorial.ui', '/')
+        setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
         if self.ui_dict:
-            # Sends a notification to the tutorial UI that it should update
-            bus = dbus.SessionBus()
-            proxy = bus.get_object('org.qubes.tutorial.ui', '/')
-            setup_ui = proxy.get_dbus_method('setup_ui', 'org.qubes.tutorial.ui')
             logging.info(setup_ui(self.ui_dict))
+        else:
+            # send "empty" dictionary since dbus yields the error
+            #    ValueError: Unable to guess singature from an empty dict
+            empty_ui_dict = [{'type': 'none'}]
+            logging.info(setup_ui(empty_ui_dict))
 
     def teardown(self):
         """
