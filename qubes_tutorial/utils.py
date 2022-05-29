@@ -1,6 +1,5 @@
 import logging
-import Xlib
-import Xlib.display
+import re
 import subprocess
 
 def gen_report(q, file="report.md"):
@@ -28,24 +27,13 @@ def gen_report(q, file="report.md"):
 def get_window_title(winid):
     """ Obtains the window title """
 
-    # TODO check if needs sanitization
-    winid_int = int(winid, 16) # convert str to hex
-    dpy = Xlib.display.Display()
-    win = dpy.create_resource_object('window', winid_int)
-    atom_id = dpy.intern_atom('WM_NAME')
+    # FIXME SANITIZE
+    untrusted_wininfo = subprocess.check_output(
+        'xwininfo -id {}'.format(winid),
+        shell=True)
 
-    # Not well documented process. Solved with the help of
-    # https://stackoverflow.com/questions/9465651/how-can-i-read-an-x-property-using-python-xlib
-    window_prop = win.get_full_property(atom_id, property_type=0)
-    if window_prop:
-        untrusted_win_name = window_prop.value  # type: Union[str, bytes]
-        if isinstance(untrusted_win_name, bytes):
-            # Apparently COMPOUND_TEXT is so arcane that this is how
-            # tools like xprop deal with receiving it these days
-            untrusted_win_name = untrusted_win_name.decode('latin1', 'replace')
-        return untrusted_win_name
-
-    return "<unnamed window>"
+    # FIXME add "<unnamed window>" case
+    return re.search('"([^"]+)', str(untrusted_wininfo)).group(1)
 
 def enable_vm_debug(vm):
     """ enables debug mode for VM """
@@ -70,12 +58,8 @@ def disable_vm_debug(vm):
 def window_viewable(winid):
     """ Checks if an windows is viewable """
 
-    winid_int = int(winid, 16) # convert str to hex
-    dpy = Xlib.display.Display()
-    win = dpy.create_resource_object('window', winid_int)
-    attr = win.get_attributes()
+    untrusted_wininfo = subprocess.check_output(
+        'xwininfo -id {}'.format(winid),
+        shell=True)
 
-    if attr.map_state == 0:
-        return False
-    else:
-        return True
+    return "Map State: IsViewable" in str(untrusted_wininfo)
