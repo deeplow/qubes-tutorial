@@ -1,7 +1,7 @@
 import unittest
 import qubes_tutorial.tutorial as tutorial
 import qubes_tutorial.interactions as interactions
-from mock import Mock
+from unittest.mock import Mock
 
 class TestTutorial(unittest.TestCase):
 
