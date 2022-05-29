@@ -6,66 +6,63 @@ from queue import Queue
 import threading
 import systemd.journal
 import asyncio
+import qubesadmin.events
+import qubesadmin.tools
 
-from qubes_tutorial.interactions import *
 import qubes_tutorial.utils as utils
 import qubes_tutorial.interactions as interactions
 
 watchers = list()
 watchers_threads = list()
 
+log_fmt = "%(module)s: %(message)s"
+logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+
 class InteractionLogger:
     """Singleton class manging all watchers"""
 
     def __init__(self, scope: list):
-        self.interactions = Queue()
-
-        self.watchers = []
-
         # vm-specific logs monitoring
-        for vm in scope:
-            utils.enable_vm_debug(vm)
-            self.watchers.append(
-                GuidLogWatcher(vm))
+        #for vm in scope:
+        #    utils.enable_vm_debug(vm)
+        #    self.watchers.append(
+        #        GuidLogWatcher(vm))
 
-        # qrexec monitoring
-        self.watchers.append(
-            QrexecWatcher(scope))
+        self.watchers = [
+            QrexecWatcher(scope),
+            QubesAdminWatcher(scope)
+        ]
 
     def run(self):
+        asyncio.run(self.run_async())
+
+    async def run_async(self):
+        tasks = []
         for watcher in self.watchers:
-            self.interactions.put(Interaction("FIXME something"))
+            tasks.append(watcher.get_task())
+
+        await asyncio.gather(*tasks)
 
     def get_interaction(self):
         """gets the next interaction """
 
-def start_interaction_logger(scope, interactions_q):
+def start_interaction_logger(scope):
     global interactor
     interactor = InteractionLogger(scope)
 
     interactor_thread = threading.Thread(target=interactor.run, daemon=True)
     interactor_thread.start()
 
-    #loop = asyncio.get_event_loop()
-    #try:
-    #    loop.run_until_complete(run())
-    #finally:
-    #    loop.close()
-
-
-#async def run():
-#    pass
-#    #async for i in ticker(1, 10):
-#    #    print(i)
-
 def stop_interaction_logger(scope: list):
     for vm in scope:
         utils.disable_vm_debug(vm)
+
 
 class AbstractWatcher:
     """ Generic log reader """
 
     def __init__(self):
+        logging.info("starting watcher " + str(self))
         self.terminate = False
 
     def run(self):
@@ -76,6 +73,28 @@ class AbstractWatcher:
 
     def generate_interaction(self, line):
         pass
+
+
+class QubesAdminWatcher(AbstractWatcher):
+    """
+    Watcher for Qubes Admin events
+    """
+    def __init__(self, scope):
+        # FIXME apply scope to interaction generation
+        self.scope = scope
+        super().__init__()
+
+    def get_task(self):
+        logging.info("running qubes admin watcher")
+        qapp = qubesadmin.Qubes()
+        dispatcher = qubesadmin.events.EventsDispatcher(qapp)
+        dispatcher.add_handler('*', self.register_event)
+        events_listener = asyncio.ensure_future(dispatcher.listen_for_events())
+        return events_listener
+
+    def register_event(self, subject, event_name, **kwargs):
+        interactions.register("qubes-events:{}:{}".format(subject, event_name))
+
 
 class LogWatcher(AbstractWatcher):
     """ Reads logs from a file """
@@ -90,30 +109,29 @@ class LogWatcher(AbstractWatcher):
         while not os.path.exists(self.log_file_path):
             logging.info("Non-existant log file: {}".format(self.log_file_path))
             logging.info("  waiting for it to be created")
-            yield None
 
         with open(self.log_file_path, 'r') as f:
-            #f.seek(0, os.SEEK_END) # ignore old logs (start from end)
+            f.seek(0, os.SEEK_END) # ignore old logs (start from end)
             while not self.terminate:
                 line = self.loop(f)
-                yield self.generate_interaction(line)
+                self.generate_interaction(line)
 
     def loop(self, file):
             line = ''
             while not self.terminate and (len(line) == 0 or line[-1] != '\n'):
                 tail = file.readline()
                 if tail == '':
-                    time.sleep(0.01)
+                    #time.sleep(0.01)
                     continue
                 line += tail
-            yield line
-
+            return line
 
 
 class GuidLogWatcher(LogWatcher):
     """ Reads logs from guid interactions for qube """
 
     def __init__(self, vm):
+        logging.info("starting guid logging for vm {}".format(vm))
         log_file_path = "/var/log/qubes/guid.{}.log".format(vm)
         self.vm = vm
         super().__init__(log_file_path)
@@ -157,37 +175,47 @@ class AbstractSysLogWatcher(AbstractWatcher):
         super().__init__()
         self.journal = systemd.journal.Reader()
 
-    def run(self):
+    async def process_lines(self):
         self.journal.seek_tail()
         while not self.terminate:
             event = self.journal.wait(100)
             if event == systemd.journal.APPEND:
                 for entry in self.journal:
                     self.generate_interaction(entry['MESSAGE'])
+            await asyncio.sleep(0.1)
+
+    def get_task(self):
+        loop = asyncio.get_event_loop()
+        return loop.create_task(self.process_lines())
 
 class QrexecWatcher(AbstractSysLogWatcher):
     """ Reads Qrexec policy log from syslog """
 
     def __init__(self, scope):
         super().__init__()
-        self.journal.add_match(_COMM='qrexec-policy')
+        self.journal.add_match(_SYSTEMD_UNIT="qubes-qrexec-policy-daemon.service")
         self.scope = scope
 
         # VM name regex: https://github.com/QubesOS/qubes-core-admin/blob/df6407/qubes/vm/__init__.py#L56
-        vm_name_re = "[a-zA-Z][a-zA-Z0-9_-]*"
-        policy_re = "[\\.a-zA-Z0-9_-]+"
+        vm_name_re = "[a-zA-Z][a-zA-Z0-9_\-]*"
+        policy_re = "[\\.a-zA-Z0-9_\-]+\+[\\.a-zA-Z0-9_\-]*"
         qrexec_success_re = "allowed to (?P<target>{})".format(vm_name_re)
         qrexec_fail_re = "(?P<fail_reason>.*)"
 
-        self.qrexec_re = re.compile("(?P<policy>{}): (?P<source>{}) -> [@]?{}: ({}|{})"\
+        self.qrexec_re = re.compile("qrexec: (?P<policy>{}): (?P<source>{}) -> [@]?{}: ({}|{})"\
             .format(policy_re, vm_name_re, vm_name_re, qrexec_success_re, qrexec_fail_re))
 
     def generate_interaction(self, line):
-        action = self.qrexec_re.search(line)
-        policy = action.group("policy")
-        source = action.group("source")
-        target = action.group("target")
-        fail_reason = action.group("fail_reason")
+        logging.info(line)
+        try:
+            action = self.qrexec_re.search(line)
+            policy = action.group("policy")
+            source = action.group("source")
+            target = action.group("target")
+            fail_reason = action.group("fail_reason")
+        except:
+            # ignore if pattern not matched
+            return
 
         if source in self.scope: # only consider in scope actions initiated by vm in scope
             if fail_reason:
@@ -197,5 +225,4 @@ class QrexecWatcher(AbstractSysLogWatcher):
             else:
                 logging.info("\n\tdecision: allow\n\tpolicy: {}\n\tsource: {}\n\ttarget: {}".format(policy, source, target))
                 #yield QrexecPolicyInteraction(True, policy, source, target)
-                interactions.register("qubes-qrexec:{}:{}:{}".format(
-                    policy, source, target))
+                interactions.register("qubes-qrexec-{}".format(policy), source, target)

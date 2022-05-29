@@ -225,7 +225,7 @@ class Tutorial:
         Returns the list of VMs that are affected by the tutorial
         """
         # TODO complete function by parsing all VMs and components in all steps
-        return []
+        return ["personal", "work"]
 
     def load_as_yaml(self, yaml_text):
         """
@@ -310,13 +310,13 @@ class Tutorial:
         self.current_step = self.get_first_step()
         self.current_step.setup()
 
-        #watchers.start_interaction_logger(self.get_scope(), interactions_q)
+        watchers.start_interaction_logger(self.get_scope())
         self.glib_update(self.main_context, self.loop)
         self.loop.run_forever()
 
     def stop_loop(self):
         self.loop.close()
-        #watchers.stop_interaction_logger(self.get_scope())
+        watchers.stop_interaction_logger(self.get_scope())
 
     def glib_update(self, main_context, loop):
         while main_context.pending():
