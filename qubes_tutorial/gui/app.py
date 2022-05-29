@@ -94,10 +94,13 @@ class TutorialUIDbusService(dbus.service.Object):
             elif ui_type == "step_information_pointing":
                 self.setup_ui_step_information_pointing(ui_item_dict)
                 self.enabled_widgets += [self.step_info_pointing]
-            elif ui_type == "current_task":
+            elif ui_type == "new_task":
                 new_task = True
                 self.setup_ui_current_task(ui_item_dict)
                 self.enabled_widgets += [self.current_task]
+            elif ui_type == "no_more_tasks":
+                self.current_task.teardown()
+                self.current_task.hide()
             elif ui_type == "none":
                 self.enabled_widgets = []
             else:
@@ -161,20 +164,16 @@ class TutorialUIDbusService(dbus.service.Object):
         screen the goal of the current task. When the user has acknowledged,
         it will show on the bottom-right corner as a reminder.
         """
-        task_number  = int(ui_item_dict.get('task_number', "-1"))
         task_description  = ui_item_dict.get('task_description', "")
 
-        if task_number > 0:
-            def on_ok():
-                interactions.register("tutorial:next")
+        def on_ok():
+            interactions.register("tutorial:next")
 
-            def on_exit():
-                interactions.register("tutorial:exit")
+        def on_exit():
+            interactions.register("tutorial:exit")
 
-            self.current_task.update(task_number, task_description, on_ok, on_exit)
-        else:
-            self.current_task.teardown()
-            self.current_task.hide()
+        self.current_task.update(task_description, on_ok, on_exit)
+
 
 class TutorialUIInterface:
     """
@@ -243,17 +242,20 @@ class CurrentTaskInfo(TutorialWindow):
         super().__init__()
         self.connect_signals()
         self.state = self.STATE_CENTER
+        self.task_num = 0
 
     def connect_signals(self):
         self.button.connect('clicked', self.on_btn_pressed)
 
-    def update(self, task_n, text, ok_callback, exit_callback):
-        # becomes foreground when it is updated
-        self.title.set_label("Task {}".format(task_n))
+    def update(self, text, ok_callback, exit_callback):
         self.text.set_label(text)
+        self.task_num = self.task_num + 1
+        self.title.set_label("Task {}".format(self.task_num))
 
+        # becomes foreground when it is updated
         self.move_to_center()
         self.show_all()
+        self.set_keep_above(True)
         self.button.set_label("OK")
         self.button.get_style_context().add_class("blue_button")
 
@@ -262,6 +264,9 @@ class CurrentTaskInfo(TutorialWindow):
 
         # FIXME add "(last one)" when it's the last
         # FIXME add "X of Y" so users can keep track of progress
+
+    def teardown(self):
+        self.task_num = 0
 
     def move_to_center(self):
         self.state = self.STATE_CENTER
