@@ -40,14 +40,14 @@ def main():
     if args.create:
         create_tutorial(args.create, scope, interactions_q)
     else:
-        start_tutorial("tutorial.tut", scope, interactions_q)
+        tutorial = Tutorial("tutorial.tut") # FIXME remove hardcoded
+        start_tutorial(tutorial, scope, interactions_q)
 
     watchers.stop_watchers(scope)
 
 
-def start_tutorial(infile, scope, interactions_q):
+def start_tutorial(tutorial, interactions_q):
     logging.info("starting tutorial")
-    tutorial = Tutorial(infile)
 
     # TODO global logs monitoring
 
