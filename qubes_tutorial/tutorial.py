@@ -136,12 +136,29 @@ class Tutorial:
     "Steps" are the nodes and "interactions" are the arcs
     """
 
-    def __init__(self, infile=None):
+    def __init__(self, file_path):
         if not infile:
             self.create_mode = True
             self.step_map = OrderedDict() # maps a step's name to a step object
         else:
-            self._load_as_file_literate_yaml(infile)
+            self.load_as_file(file_path)
+
+    def check_integrity(self):
+        """
+        Checks if the tutorial makes sense
+        """
+        # has a first and last step
+        self.get_step("start")
+        self.get_step("end")
+
+        # TODO last step is reachable from first step
+
+        # TODO is a directed acyclic graph
+
+        # TODO has no dead-ends
+
+        # TODO all steps are reachable
+
 
     def load_as_yaml(self, yaml_text):
         """
@@ -163,6 +180,8 @@ class Tutorial:
                 next_step = self.get_step(transition['step'])
                 interaction_type = transition['interaction_type']
                 interaction = Interaction(interaction_type)
+
+        self.check_integrity()
 
     def load_as_file(self, file_path):
         if file_path.endswith("yaml") or file_path.endswith("yml"):
