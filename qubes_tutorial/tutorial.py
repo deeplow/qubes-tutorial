@@ -5,9 +5,9 @@ from queue import Queue
 import yaml
 from collections import OrderedDict
 
-import utils
-import watchers as watchers
-from interactions import Interaction
+import qubes_tutorial.utils as utils
+import qubes_tutorial.watchers as watchers
+from qubes_tutorial.interactions import Interaction
 
 interactions = []
 

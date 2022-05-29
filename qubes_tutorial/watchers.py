@@ -6,8 +6,8 @@ from queue import Queue
 import threading
 import systemd.journal
 
-from interactions import *
-import utils
+from qubes_tutorial.interactions import *
+import qubes_tutorial.utils as utils
 
 watchers = list()
 watchers_threads = list()

@@ -1,4 +1,4 @@
-import utils
+import qubes_tutorial.utils as utils
 import yaml
 
 class Interaction():
