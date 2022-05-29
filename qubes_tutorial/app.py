@@ -126,7 +126,6 @@ class TutorialUI(dbus.service.Object):
         self.modal.update(template_path, title,
                           next_button_label, on_next_button_pressed,
                           back_button_label, on_back_button_pressed)
-        self.modal.show_all()
 
     def setup_ui_step_information(self, ui_item_dict):
         def on_ok_button_pressed():
@@ -134,8 +133,13 @@ class TutorialUI(dbus.service.Object):
 
         title = ui_item_dict.get('title')
         text  = ui_item_dict.get('text')
-        self.step_info.update(title, text, on_ok_button_pressed)
-        self.step_info.show_all()
+        has_ok_btn = ui_item_dict.get('has_ok_btn')
+        if has_ok_btn == "True":
+            self.step_info.update(title, text, on_ok_button_pressed)
+        elif has_ok_btn == "False":
+            self.step_info.update(title, text)
+        else:
+            logging.error("unknown value for 'has_ok_btn'")
 
 def main():
     log_fmt = "%(module)s: %(message)s"

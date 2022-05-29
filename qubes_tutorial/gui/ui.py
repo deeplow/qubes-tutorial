@@ -15,12 +15,15 @@ class StepInformation(Gtk.Dialog):
     def __init__(self):
         super().__init__()
 
-    def update(self, title, text, ok_button_pressed_callback):
-        self.ok_button_pressed_callback = ok_button_pressed_callback
-        print(self.title)
-        print(self.text)
+    def update(self, title, text, ok_button_pressed_callback=None):
         self.title.set_label(title)
         self.text.set_label(text)
+        self.show_all()
+
+        if ok_button_pressed_callback is None:
+            self.ok_btn.hide()
+        else:
+            self.ok_button_pressed_callback = ok_button_pressed_callback
 
     @Gtk.Template.Callback()
     def on_ok_btn_pressed(self, button):
@@ -57,6 +60,7 @@ class ModalWindow(Gtk.Window):
         self.next_button_callback = next_button_callback
         self.back_button.set_label(back_button_label)
         self.back_button_callback = back_button_callback
+        self.show_all()
 
     @Gtk.Template.Callback()
     def on_next_button_pressed(self, button):
