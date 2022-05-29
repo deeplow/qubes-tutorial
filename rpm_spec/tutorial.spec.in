@@ -27,6 +27,8 @@ Requires:  python%{python3_pkgversion}-setuptools
 Requires:  python%{python3_pkgversion}-systemd
 Requires:  gtk3
 
+Provides:   qubes-tutorial = %{version}-%{release}
+
 %prep
 %setup -q
 
