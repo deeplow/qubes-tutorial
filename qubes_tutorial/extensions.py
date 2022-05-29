@@ -97,8 +97,16 @@ class GtkTutorialExtension(TutorialExtension):
     to   { box-shadow: inset 0px 0px 10px @theme_selected_bg_color; }
     }
 
+    @keyframes animated-highlight-wrong {
+    from { box-shadow: inset 0px 0px 4px  #f44933; }
+    to   { box-shadow: inset 0px 0px 10px #f44933; }
+    }
+
     .highlighted {
     animation: animated-highlight 1s infinite alternate;
+    }
+    .highlighted-wrong {
+    animation: animated-highlight-wrong 1s infinite alternate;
     }
     """
 
@@ -119,6 +127,10 @@ class GtkTutorialExtension(TutorialExtension):
 def widget_highlight(widget):
     widget.get_style_context().add_class("highlighted")
 
+def widget_highlight_wrong(widget):
+    widget.get_style_context().add_class("highlighted-wrong")
+
 def widget_highlight_remove(widget):
     widget.get_style_context().remove_class("highlighted")
+    widget.get_style_context().remove_class("highlighted-wrong")
 
